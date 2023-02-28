@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 @app.route('/')
 def main():
-    return render_template('index.html', api_key=os.environ['API_KEY'])
+    return render_template('index.html', api_key=os.getenv('API_KEY'))
 
 
 if __name__ == '__main__':
