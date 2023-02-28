@@ -1,10 +1,12 @@
 from flask_cors import CORS
-from flask import Flask, jsonify
+from flask import Flask, render_template
 import pickle
 import argparse
+import os
 
 # Flask initializations
-app = Flask(__name__)
+template_dir = os.path.abspath('static/')
+app = Flask(__name__, template_folder=template_dir)
 CORS(app)
 
 # argparse initializations
@@ -17,7 +19,7 @@ args = parser.parse_args()
 
 @app.route('/')
 def main():
-    return
+    return render_template('index.html', api_key=os.environ['API_KEY'])
 
 
 if __name__ == '__main__':

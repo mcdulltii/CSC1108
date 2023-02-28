@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Johor Bahru Route Planner</title>
+  <script src="{{url_for('static', filename='map.js')}}"></script>
+  <script type="text/javascript"
+          src="https://maps.googleapis.com/maps/api/js?key={{api_key}}">
+  </script>
+</head>
+<body onload="initialize()">
+  <div id="map-canvas" style="width:80%; height:80%;"></div>
+</body>
+</html>
