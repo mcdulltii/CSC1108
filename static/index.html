@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Johor Bahru Route Planner</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="{{url_for('static', filename='map.js')}}"></script>
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}" />
+</head>
+<body>
+  <table width=100% height=100%>
+    <tr>
+      <td width=20%>
+        <!-- HTML and JS elements -->
+      </td>
+      <td width=80%>
+        <div id="floating-panel">
+          <table width=100% height=100%>
+            <tr>
+              <td>
+                <input id="show-overlay" type="button" value="Show overlays"/>
+                <input id="hide-overlay" type="button" value="Hide overlays"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input id="bus-select" type="button" value="Show all"/>
+                <input id="bus-deselect" type="button" value="Clear all"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="bus-dropdown" class="btn-group">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Bus Route Selection
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    {% for bus_number in bus_selection %}
+                    <button class="dropdown-item bus-item" name="{{bus_number}}" value="false" type="button">{{bus_number}}</a>
+                    {% endfor %}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <!-- Google map canvas -->
+        <div id="map-canvas"></div>
+      </td>
+    </tr>
+  </table>
+
+  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{api_key}}&callback=initialize"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</body>
+</html>
