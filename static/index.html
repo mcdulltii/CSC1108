@@ -24,16 +24,21 @@
             </tr>
             <tr>
               <td>
-                <div id="bus-dropdown" class="dropdown-check-list" tabindex="100">
-                  <span class="anchor">Select Bus Route</span>
-                  <ul class="items">
-                  {% for bus_number in bus_selection %}
-                    <li>
-                      <input class="form-check-input bus-checkbox" type="checkbox" name="{{bus_number}}" value="{{bus_number}}">
-                      <label class="form-check-label">{{bus_number}}</label>
-                    </li>
-                  {% endfor %}
-                  </ul>
+                <input id="bus-select" type="button" value="Show all"/>
+                <input id="bus-deselect" type="button" value="Clear all"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="bus-dropdown" class="btn-group">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Bus Route Selection
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    {% for bus_number in bus_selection %}
+                    <button class="dropdown-item bus-item" name="{{bus_number}}" value="false" type="button">{{bus_number}}</a>
+                    {% endfor %}
+                  </div>
                 </div>
               </td>
             </tr>

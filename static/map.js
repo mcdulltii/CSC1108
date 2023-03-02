@@ -2,6 +2,8 @@
 var map;
 // Marker overlay
 var marker;
+// Overlay shown boolean
+var isHidden = false;
 // List of bus polylines
 var busPolylines = {
   'P101_1': null,
@@ -57,51 +59,40 @@ function initialize() {
     placeMarker(event.latLng);
   });
 
-  // Overlay bus routes
-//   overlayBusRoute('P101', 1, "#FF0000", map);
-//   overlayBusRoute('P102', 1, "#00FF00", map);
-//   overlayBusRoute('P102', 2, "#0000FF", map);
-//   overlayBusRoute('P106', 1, "#0000FF", map);
-//   overlayBusRoute('P202', 1, "#0FF000", map);
-//   overlayBusRoute('P211', 1, "#000FF0", map);
-//   overlayBusRoute('P211', 2, "#000FF0", map);
-//   overlayBusRoute('P411', 1, "#F0000F", map);
-//   overlayBusRoute('P411', 2, "#F0000F", map);
-//   overlayBusRoute('P403', 1, "#000000", map);
-
-  // Add bus-dropdown event listener
-  var checkList = document.getElementById('bus-dropdown');
-  checkList.getElementsByClassName('anchor')[0].onclick = function(evt) {
-    if (checkList.classList.contains('visible'))
-      checkList.classList.remove('visible');
-    else
-      checkList.classList.add('visible');
-  }
-
   // Add bus-dropdown items event listeners
-  var busItems = document.getElementsByClassName('bus-checkbox');
+  var busItems = document.getElementsByClassName('bus-item');
   for (let i=0; i<busItems.length; i++) {
     const busCheckbox = busItems[i];
-    const busItemValue = busCheckbox.value;
+    const busItemValue = busCheckbox.name;
     // Set default checkbox as unchecked
-    busCheckbox.checked = false;
-    // Add bus-checkbox event listener
+    busCheckbox.value = 'false';
+    // Add bus-item event listener
     busCheckbox.addEventListener('click', function() {
-      var busCheckboxes = document.getElementsByClassName('bus-checkbox');
-      const busCheckboxEvent = busCheckboxes[busItemValue];
-      const busItemChecked = busCheckboxEvent.checked;
-      // Update overlay depending on checkbox
-      updateOverlay(busItemValue, busItemChecked);
+      handleBusCheckbox(busItemValue, null);
     });
   }
 
+  // Add bus selection event listeners
+  document.getElementById('bus-select').addEventListener('click', function() {
+    toggleAllBusCheckbox(true);
+  });
+  document.getElementById('bus-deselect').addEventListener('click', function() {
+    toggleAllBusCheckbox(false);
+  });
+
   // Add button event listeners
-  document.getElementById('show-overlay').addEventListener('click', showOverlay);
-  document.getElementById('hide-overlay').addEventListener('click', hideOverlay);
+  document.getElementById('show-overlay').addEventListener('click', function() {
+    // Show bus routes
+    overlayBusRoutes(true);
+  });
+  document.getElementById('hide-overlay').addEventListener('click', function() {
+    // Hide bus routes
+    overlayBusRoutes(false);
+  });
 }
 
 function overlayBusRoute(busNumber, direction, color, googleMap) {
-  var key = busNumber + '_' + direction;
+  const key = busNumber + '_' + direction;
   // Retrieve bus routes via GET request
   if (busPolylines[key] === null) {
     getBusRoute(busNumber, direction).then(function(busRoute) {
@@ -116,13 +107,11 @@ function overlayBusRoute(busNumber, direction, color, googleMap) {
       const busPolyline = busPolylines[key];
       // Apply polyline overlay on google map
       busPolyline.setMap(googleMap);
-      showOverlays[key] = true;
     });
   } else {
     const busPolyline = busPolylines[key];
     // Apply polyline overlay on google map
     busPolyline.setMap(googleMap);
-    showOverlays[key] = true;
   }
 }
 
@@ -158,39 +147,58 @@ function getBusRoute(busNumber, direction) {
   });
 }
 
-function overlayBusRoutes(googleMap) {
-  // Iterate through list of shown overlays
-  for (var key in showOverlays) {
-    // Check if overlay is previously shown
-    if (showOverlays[key] == true) {
-      // Split key into busNumber and direction
-      var keySplit = key.split('_');
-      // Apply overlay on google map
-      overlayBusRoute(keySplit[0], keySplit[1], busRouteColors[key], googleMap);
-    }
+function toggleAllBusCheckbox(isSelected) {
+  var busItems = document.getElementsByClassName('bus-item');
+  for (let i=0; i<busItems.length; i++) {
+    const busCheckbox = busItems[i];
+    const busItemValue = busCheckbox.name;
+    handleBusCheckbox(busItemValue, isSelected);
+  }
+}
+
+function handleBusCheckbox(busItemValue, overrideCheck) {
+  // Retrieve all bus checkboxes
+  const busCheckboxes = document.getElementsByClassName('bus-item');
+  const busCheckboxEvent = busCheckboxes[busItemValue];
+  // Check if dropdown item is checked
+  const busItemChecked = overrideCheck == null ? busCheckboxEvent.value == 'false' : overrideCheck;
+  busCheckboxEvent.value = 'true' ? busItemChecked : 'false';
+  // Update overlay depending on checkbox
+  updateOverlay(busItemValue, busItemChecked);
+  if (busItemChecked) {
+    // Show element is selected
+    busCheckboxEvent.setAttribute('style', 'background-color:lightblue');
+  } else {
+    // Show element is unselected
+    busCheckboxEvent.setAttribute('style', '');
   }
 }
 
 function updateOverlay(busNumber, isShown) {
   // Toggle shown overlay
   showOverlays[busNumber] = isShown;
-  if (isShown)
-    // Show overlay
-    showOverlay();
-  else {
-    // Hide overlay
-    var keySplit = busNumber.split('_');
-    overlayBusRoute(keySplit[0], keySplit[1], busRouteColors[busNumber], null);
+  if (!isHidden)
+    showBusRoute(busNumber, isShown);
+}
+
+function overlayBusRoutes(isShown) {
+  // Iterate through list of shown overlays
+  for (var key in showOverlays) {
+    // Check if overlay is previously shown
+    if (showOverlays[key] == true) {
+      // Apply overlay on google map
+      showBusRoute(key, isShown);
+    }
   }
 }
 
-function showOverlay() {
-  // Apply overlay on global map
-  overlayBusRoutes(map);
+function showBusRoute(key, isShown) {
+  const keySplit = key.split('_');
+  if (isShown)
+    // Show overlay
+    overlayBusRoute(keySplit[0], keySplit[1], busRouteColors[key], map);
+  else {
+    // Hide overlay
+    overlayBusRoute(keySplit[0], keySplit[1], busRouteColors[key], null);
+  }
 }
-
-function hideOverlay() {
-  // Hide overlay by applying on null
-  overlayBusRoutes(null);
-}
-
