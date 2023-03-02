@@ -1,5 +1,6 @@
 from flask_cors import CORS
 from flask import Flask, jsonify, render_template
+from dotenv import load_dotenv
 import pickle
 import argparse
 import os
@@ -47,6 +48,8 @@ if __name__ == '__main__':
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(CustomFormatter())
     logger.addHandler(ch)
+
+    load_dotenv()
 
     if args.file:
         with open(args.file, 'rb') as f:
