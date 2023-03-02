@@ -5,6 +5,7 @@
   <title>Johor Bahru Route Planner</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <script src="{{url_for('static', filename='map.js')}}"></script>
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}" />
 </head>
 <body>
   <table width=100% height=100%>
@@ -13,8 +14,33 @@
         <!-- HTML and JS elements -->
       </td>
       <td width=80%>
+        <div id="floating-panel">
+          <table width=100% height=100%>
+            <tr>
+              <td>
+                <input id="show-overlay" type="button" value="Show overlays"/>
+                <input id="hide-overlay" type="button" value="Hide overlays"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="bus-dropdown" class="dropdown-check-list" tabindex="100">
+                  <span class="anchor">Select Bus Route</span>
+                  <ul class="items">
+                  {% for bus_number in bus_selection %}
+                    <li>
+                      <input class="form-check-input bus-checkbox" type="checkbox" name="{{bus_number}}" value="{{bus_number}}">
+                      <label class="form-check-label">{{bus_number}}</label>
+                    </li>
+                  {% endfor %}
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
         <!-- Google map canvas -->
-        <div id="map-canvas" style="width:100%; height:100vh;"></div>
+        <div id="map-canvas"></div>
       </td>
     </tr>
   </table>

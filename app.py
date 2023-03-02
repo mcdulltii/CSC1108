@@ -22,7 +22,9 @@ args = parser.parse_args()
 
 @app.route('/')
 def main():
-    return render_template('index.html', api_key=os.getenv('API_KEY'))
+    return render_template('index.html',
+                           api_key=os.getenv('API_KEY'),
+                           bus_selection=routes.keys() if routes is not None else None)
 
 
 @app.route('/route/<bus_number>/<int:direction>')
