@@ -6,6 +6,8 @@
 - Flask
 - flask_cors
 - python-dotenv
+- selenium
+- tqdm
 
 ## Setup
 
@@ -33,7 +35,7 @@
 
 ```shell
 > docker build -t route_planner .
-> docker run -p 80:80 -it --rm --name route_planner route_planner
+> docker run -p 8000:8000 -it --rm --name route_planner route_planner
 ```
 
 ## Usage
@@ -50,5 +52,5 @@ options:
 ```
 
 ```shell
-> python3 app.py -f ./routes_scraper/routes.txt -i 0.0.0.0 -p 80
+> python3 app.py -f ./web_scraper/routes.bin -i 0.0.0.0 -p 8000
 ```

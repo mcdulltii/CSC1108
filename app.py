@@ -59,5 +59,5 @@ if __name__ == '__main__':
         logger.warning('Load bus routes file for routes visualization feature')
         routes = None
     host = args.host if args.host else '127.0.0.1'
-    port = int(args.port) if args.port else 80
+    port = int(args.port) if args.port else 8000
     app.run(host=host, port=port)
