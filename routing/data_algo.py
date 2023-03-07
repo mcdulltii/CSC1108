@@ -60,7 +60,7 @@ def calcdistance(coordinate1, coordinate2):
 
 
 def preprocessing():
-    with open('routes.txt', 'rb') as f:
+    with open('../routes_scraper/routes.txt', 'rb') as f:
         routes = pickle.load(f)
         # routes["P101_1"] = routes["P101_1"][0:100]
         gmaps = googlemaps.Client("AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns");
@@ -122,32 +122,50 @@ def calcTime(distance, timeDeets, speed):
 
 
 def giveRoute(fromHere, toHere):
-    closestDistanceFrom = P101BusStops[1]["Coordinates"]
-    closestDistanceTo = P101BusStops[1]["Coordinates"]
-    startingBusStop = P101BusStops[1]
-    endingBusStop = P101BusStops[1]
-    for i in P101BusStops[1:]:
-        if calcdistance(fromHere, closestDistanceFrom) > calcdistance(fromHere, i["Coordinates"]):
-            startingBusStop = i
-            closestDistanceFrom = i["Coordinates"]
+    with open('../routes_scraper/routes.txt', 'rb') as f:
+        routes = pickle.load(f)
+        closestDistanceFrom = P101BusStops[1]["Coordinates"]
+        closestDistanceTo = P101BusStops[1]["Coordinates"]
+        startingBusStop = P101BusStops[1]
+        endingBusStop = P101BusStops[1]
 
-        if calcdistance(toHere, closestDistanceTo) > calcdistance(toHere, i["Coordinates"]):
-            endingBusStop = i
-            closestDistanceTo = i["Coordinates"]
-    distance = startingBusStop["DistanceToNext"]
-    indexOfStart = P101BusStops.index(startingBusStop)
-    indexOfEnd = P101BusStops.index(endingBusStop)
-    for i in range(indexOfStart + 1, indexOfEnd):
-        distance += P101BusStops[i]["DistanceToNext"]
+        for i in P101BusStops[1:]:
+            if calcdistance(fromHere, closestDistanceFrom) > calcdistance(fromHere, i["Coordinates"]):
+                startingBusStop = i
+                closestDistanceFrom = i["Coordinates"]
 
-    avgSpeed = 45  # Not good as highway speed != normal road speed
+            if calcdistance(toHere, closestDistanceTo) > calcdistance(toHere, i["Coordinates"]):
+                endingBusStop = i
+                closestDistanceTo = i["Coordinates"]
+        distance = startingBusStop["DistanceToNext"]
+        indexOfStart = P101BusStops.index(startingBusStop)
+        indexOfEnd = P101BusStops.index(endingBusStop)
+        for i in range(indexOfStart + 1, indexOfEnd):
+            distance += P101BusStops[i]["DistanceToNext"]
 
-    print("You will need to start from: " + startingBusStop["Name"])
-    print("You will go through " + str(
-        P101BusStops.index(endingBusStop) - P101BusStops.index(startingBusStop)) + " stops")
-    print("And you will end up at: " + endingBusStop["Name"])
-    print("Time taken will be around " + str(calcTime(distance, P101BusStops[0], avgSpeed)) + " minutes.")
-    print("The distance travelled will be " + str(distance / 1000) + "KM")
+        avgSpeed = 45  # Not good as highway speed != normal road speed
+        timetaken = calcTime(distance, P101BusStops[0], avgSpeed)
+        numberofStops = P101BusStops.index(endingBusStop) - P101BusStops.index(startingBusStop)
+        print("You will need to start from: " + startingBusStop["Name"])
+        print("You will go through " + str(numberofStops) + " stops")
+        print("And you will end up at: " + endingBusStop["Name"])
+        print("Time taken will be around " + str(timetaken) + " minutes.")
+        print("The distance travelled will be " + str(distance / 1000) + "KM")
+
+        listOfReturnRoute = []
+        for i in routes["P101_1"][routes["P101_1"].index(startingBusStop["Closest Point"]):routes["P101_1"].index(endingBusStop["Closest Point"])+1]:
+            listOfReturnRoute.append(i)
+
+        toReturn = {
+            "Starting Bus Stop": startingBusStop,
+            "Ending Bus Stop":endingBusStop,
+            "Route Taken": listOfReturnRoute,
+            "Distance Travelled":distance,
+            "Distance Travelled (KM)": distance/1000,
+            "Time Taken": timetaken
+        }
+        return toReturn
+#def transfer(distancealrtravelled):
 
 
 startLoc = [1.4689940555974177, 103.7368740086021]
