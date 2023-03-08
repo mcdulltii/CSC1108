@@ -7,11 +7,9 @@ class RoutesReader:
     def __init__(self):
         self.dirpath = os.path.dirname(os.path.realpath(__file__))
 
-    def read_excel(self, filepath: str = None) -> Dict[str, Dict]:
-        # Check if excel filepath is specified
-        if filepath is None:
-            # Import excel file from routeRecords.xlsx
-            filepath = os.path.join(self.dirpath, 'routeRecords.xlsx')
+    def read_excel(self, relpath: str) -> Dict[str, Dict]:
+        assert len(relpath)
+        filepath = os.path.join(self.dirpath, relpath)
 
         # dictionary with values as list
         # use sheet_Name = [0,'Bus']
@@ -22,7 +20,7 @@ class RoutesReader:
 
 def main():
     routes_reader = RoutesReader()
-    print(routes_reader.read_excel())
+    print(routes_reader.read_excel('routeRecords.xlsx'))
 
 
 if __name__ == '__main__':
