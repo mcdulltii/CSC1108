@@ -44,7 +44,7 @@ def main():
     routes = route_scraper.scrape_routes()
 
     # Save bus routes
-    fname = 'routes.txt'
+    fname = 'routes.bin'
     with open(fname, 'wb') as f:
         pickle.dump(routes, f)
     print(f'Bus routes saved to {fname}')
