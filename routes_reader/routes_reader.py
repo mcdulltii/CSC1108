@@ -17,7 +17,10 @@ class RoutesReader:
         output = {}
         for i in buses:
             df = pd.read_excel(filepath, sheet_name=i)
-            output[i] = df.set_index('Bus stop')
+            df = df[df["GPS Location"] != "No bus stop, ignore"]
+            df = df[df["GPS Location"] != "no bus stop (ignore)"]
+
+            output[i] = df.set_index('Stop ID')
         return output
 
 
