@@ -6,12 +6,12 @@ import time
 
 from routes_reader.routes_reader import RoutesReader
 
-
 routes_reader = RoutesReader()
 
 busstops = routes_reader.read_excel('bus_stops.xlsx')
 P101BusStops = busstops["P101-loop"]
 parsedData = {}
+graphedData = {}
 
 
 def calcdistance(coordinate1, coordinate2):
@@ -38,6 +38,7 @@ def preprocessing():
         # calc distance
         for i in range(0, len(busstops)):
             parsedData[list(busstops.keys())[i]] = []
+
             for l, stop in busstops[list(busstops.keys())[i]].iterrows():
                 parsedData[list(busstops.keys())[i]].append(
                     {
@@ -45,19 +46,26 @@ def preprocessing():
                         "GPS Location": stop["GPS Location"]
                     }
                 )
+                graphedData[stop["Bus stop"]] = []
             key = list(parsedData.keys())[i]
+
             for dataIndex in range(0, len(parsedData[key])):
                 check = 5000;
                 point = None
-                for coordinates in routes[list(routes.keys())[i]]:
+                counter = 0;
+                for coordinates in range(counter, len(routes[list(routes.keys())[i]])):
                     busStop = parsedData[key][dataIndex]
                     distance = calcdistance(
                         (float(busStop["GPS Location"].split(",")[0].strip()),
                          float(busStop["GPS Location"].split(",")[1].strip())),
-                        (float(coordinates[1]), float(coordinates[0])))
+                        (float(routes[list(routes.keys())[i]][coordinates][1]),
+                         float(routes[list(routes.keys())[i]][coordinates][0])))
                     if distance < check:
                         check = distance
-                        point = coordinates
+                        point = routes[list(routes.keys())[i]][coordinates]
+
+                print("Sync"+ key)
+                print("Sync" + list(routes.keys())[i])
                 parsedData[key][dataIndex]['Distance Away'] = check
                 parsedData[key][dataIndex]["Closest Point"] = point
                 busServiceForRoute = list(routes.keys())[i]
@@ -65,27 +73,57 @@ def preprocessing():
             routeCounter = 0
             for dataIndex in range(0, len(parsedData[key])):
                 counterDist = 0
-                for routeIndexIterator in range(routeCounter, len(routes[busServiceForRoute]) -1):
-                    if dataIndex == len(parsedData[key])-1:
+                for routeIndexIterator in range(routeCounter, len(routes[busServiceForRoute]) - 1):
+                    if dataIndex == len(parsedData[key]) - 1:
                         break
-                    origin = (routes[busServiceForRoute][routeIndexIterator][1], routes[busServiceForRoute][routeIndexIterator][0])
+                    origin = (routes[busServiceForRoute][routeIndexIterator][1],
+                              routes[busServiceForRoute][routeIndexIterator][0])
                     destination = (
-                        routes[busServiceForRoute][routeIndexIterator + 1][1], routes[busServiceForRoute][routeIndexIterator + 1][0])
+                        routes[busServiceForRoute][routeIndexIterator + 1][1],
+                        routes[busServiceForRoute][routeIndexIterator + 1][0])
                     # temp = gmaps.distance_matrix(origin, destination, mode="driving")["rows"][0]["elements"][0][
                     temp = calcdistance(origin, destination)
                     #    "distance"][
                     #   "value"]
                     counterDist += temp
                     # totalDistance += temp
-                    routeCounter += 1
-                    if parsedData[key][dataIndex+1]["Closest Point"] == routes[busServiceForRoute][routeIndexIterator]:
+                    if parsedData[key][dataIndex + 1]["Closest Point"] == routes[busServiceForRoute][
+                        routeIndexIterator]:
                         parsedData[key][dataIndex]["Distance to Next"] = counterDist
-                        routeCounter += 1
-                        counterDist = 0
+                        routeCounter = routeIndexIterator
                         break
+                    routeCounter = routeIndexIterator
+
+        for stopName in graphedData.keys():
+            for i in parsedData.keys():
+                for d in range(0, len(parsedData[i]) - 1):
+                    if stopName == parsedData[i][d]["Name"]:
+                        try:
+                            parsedData[i][d]["Distance to Next"]
+                            graphedData[stopName].append({
+                                "Name": parsedData[i][d + 1]["Name"],
+                                "Bus": i,
+                                "Distance Away": parsedData[i][d]["Distance to Next"]
+                            })
+                        except KeyError:
+                            graphedData[stopName].append({
+                                "Name": parsedData[i][d + 1]["Name"],
+                                "Bus": i,
+                                "Distance Away": "Issue"
+                            })
+
+                        break
+        print(routes["P106_1"])
+        print(parsedData["P106-loop"])
+        #for i in graphedData.keys():
+        #    print(i + ":"+str(graphedData[i]))
+
     end = time.time()
 
-    print((str(end - start) + "s"))
+
+
+    #print((str(end - start) + "s"))
+
 
 def calcTime(distance, timeDeets, speed):
     openingTime = datetime.strptime(timeDeets["Daily"].split("-")[0].strip(), '%H:%M')
@@ -102,15 +140,16 @@ def calcTime(distance, timeDeets, speed):
     timetaken += (distance / 1000 / speed) * 60
     return timetaken
 
+
 def calcBusToTake(place):
     start = time.time()
-    #Search Algo needs to be improved
+    # Search Algo needs to be improved
     busToTake = ""
     busStopToTake = ""
     distanceAway = 5000
     for i in parsedData.keys():
         for stop in parsedData[i]:
-            temp = calcdistance(place, [stop["Closest Point"][1],stop["Closest Point"][0]])
+            temp = calcdistance(place, [stop["Closest Point"][1], stop["Closest Point"][0]])
             if temp <= distanceAway:
                 distanceAway = temp
                 busToTake = i
@@ -172,8 +211,6 @@ def giveRoute(fromHere, toHere):
 startLoc = [1.4689940555974177, 103.7368740086021]
 endLoc = [1.4635691591027955, 103.76499694129318]
 preprocessing()
-print(parsedData)
-calcBusToTake([1.4794125239358897, 103.72578357602447])
-
+#calcBusToTake([1.4794125239358897, 103.72578357602447])
 
 # giveRoute(startLoc, endLoc)
