@@ -3,18 +3,125 @@ import googlemaps
 from math import sin, cos, sqrt, atan2, radians
 from datetime import datetime
 import time
-import dijkstras
+from dijkstras import Dijkstras
 from routes_reader.routes_reader import RoutesReader
 
 routes_reader = RoutesReader()
 
-busstops = routes_reader.read_excel('bus_stops.xlsx')
-P101BusStops = busstops["P101-loop"]
 parsedData = {}
-graphedData = {}
-mapBoxScrap = None
 
-def calcdistance(coordinate1, coordinate2):
+
+class RoutingAlgo:
+    gmaps = None
+    mapBoxScrap = None
+    busstops = None
+    graphedData = {}
+    routeCalculator = None
+    def __init__(self):
+        self.gmaps = googlemaps.Client("AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns")
+        self.busstops = routes_reader.read_excel('bus_stops.xlsx')
+        with open('../web_scraper/routes.bin', 'rb') as f:
+            self.mapBoxScrap = pickle.load(f)
+        for i in range(0, len(self.busstops)):
+            parsedData[list(self.busstops.keys())[i]] = []
+            for l, stop in self.busstops[list(self.busstops.keys())[i]].iterrows():
+                parsedData[list(self.busstops.keys())[i]].append(
+                    {
+                        "Name": stop["Bus stop"],
+                        "GPS Location": stop["GPS Location"]
+                    }
+                )
+                self.graphedData[stop["Bus stop"]] = []
+            key = list(parsedData.keys())[i]
+            prevSave = 0
+            for dataIndex in range(0, len(parsedData[key])):
+                returnIndex = 0
+                check = 5000
+                point = None
+                counter = 0
+                for coordinates in range(prevSave, len(self.mapBoxScrap[list(self.mapBoxScrap.keys())[i]])):
+                    counter += 1
+                    if (counter == 51):
+                        break
+                    busStop = parsedData[key][dataIndex]
+                    distance = calcDistance(
+                        (float(busStop["GPS Location"].split(",")[0].strip()),
+                         float(busStop["GPS Location"].split(",")[1].strip())),
+                        (float(self.mapBoxScrap[list(self.mapBoxScrap.keys())[i]][coordinates][1]),
+                         float(self.mapBoxScrap[list(self.mapBoxScrap.keys())[i]][coordinates][0])))
+                    if distance < check:
+                        check = distance
+                        point = self.mapBoxScrap[list(self.mapBoxScrap.keys())[i]][coordinates]
+                        returnIndex = coordinates
+                        prevSave = coordinates
+                parsedData[key][dataIndex]['Distance Away'] = check
+                parsedData[key][dataIndex]["Closest Point"] = point
+                parsedData[key][dataIndex]["Index in route[]"] = returnIndex
+            busServiceForRoute = list(self.mapBoxScrap.keys())[i]
+            routeCounter = 0
+            for dataIndex in range(0, len(parsedData[key]) - 1):
+                counterDist = 0
+                for routeIndexIterator in range(routeCounter, len(self.mapBoxScrap[busServiceForRoute]) - 1):
+                    origin = (self.mapBoxScrap[busServiceForRoute][routeIndexIterator][1],
+                              self.mapBoxScrap[busServiceForRoute][routeIndexIterator][0])
+                    destination = (
+                        self.mapBoxScrap[busServiceForRoute][routeIndexIterator + 1][1],
+                        self.mapBoxScrap[busServiceForRoute][routeIndexIterator + 1][0])
+                    # temp = gmaps.distance_matrix(origin, destination, mode="driving")["rows"][0]["elements"][0][
+
+                    #    "distance"][
+                    #   "value"]
+                    temp = calcDistance(origin, destination)
+                    counterDist += temp
+
+                    if parsedData[key][dataIndex + 1]["Closest Point"] == self.mapBoxScrap[busServiceForRoute][
+                        routeIndexIterator + 1]:
+                        parsedData[key][dataIndex]["Distance to Next"] = counterDist
+                        routeCounter = routeIndexIterator
+                        break
+                    routeCounter = routeIndexIterator
+        for stopName in self.graphedData.keys():
+            self.graphedData[stopName].append({"Buses Supported": []})
+            for i in parsedData.keys():
+                for d in range(0, len(parsedData[i]) - 1):
+                    if stopName == parsedData[i][d]["Name"]:
+                        self.graphedData[stopName][0]["Buses Supported"].append(i)
+                        try:
+                            self.graphedData[stopName].append({
+                                "Name": parsedData[i][d + 1]["Name"],
+                                "Bus": i,
+                                "Distance Away": float(parsedData[i][d]["Distance to Next"])
+                            })
+                        except KeyError:
+                            self.graphedData[stopName].append({
+                                "Name": parsedData[i][d + 1]["Name"],
+                                "Bus": i,
+                                "Distance Away": "Issue"
+                            })
+
+                        break
+            self.graphedData[stopName][0]["Buses Supported"] = list(
+                set(self.graphedData[stopName][0]["Buses Supported"]))
+            self.routeCalculator = Dijkstras(self.graphedData)
+
+    def getRoute(self, startingLocation, endingLocation):
+        routeObject = self.routeCalculator.calculateRoute(startingLocation, endingLocation)
+        #Anis Method to be called Here
+        startingBusStop = startingLocation
+        endingBusStop = endingLocation
+
+        toReturn = {
+            "Starting Bus Stop": startingBusStop,
+            "Ending Bus Stop": endingBusStop,
+            "Route Taken": [],
+            "Buses To Take": [],
+            "Distance Travelled (KM)" : routeObject["Distance"]
+        }
+
+        print(routeObject)
+
+
+def calcDistance(coordinate1, coordinate2):
     R = 6373.0  # earth
     lat1 = radians(float(coordinate1[0]))
     lon1 = radians(float(coordinate1[1]))
@@ -29,93 +136,15 @@ def calcdistance(coordinate1, coordinate2):
     return distance
 
 
-def preprocessing():
-    with open('../web_scraper/routes.bin', 'rb') as f:
-        routes = pickle.load(f)
-        mapBoxScrap = routes;
 
-    gmaps = googlemaps.Client("AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns");
-    # calc distance
-    for i in range(0, len(busstops)):
-        parsedData[list(busstops.keys())[i]] = []
-        for l, stop in busstops[list(busstops.keys())[i]].iterrows():
-            parsedData[list(busstops.keys())[i]].append(
-                {
-                    "Name": stop["Bus stop"],
-                    "GPS Location": stop["GPS Location"]
-                }
-            )
-            graphedData[stop["Bus stop"]] = []
-        key = list(parsedData.keys())[i]
-        prevSave = 0
-        for dataIndex in range(0, len(parsedData[key])):
-            returnIndex = 0
-            check = 5000
-            point = None
-            counter = 0
-            for coordinates in range(prevSave, len(mapBoxScrap[list(mapBoxScrap.keys())[i]])):
-                counter +=1
-                if(counter == 51):
-                    break
-                busStop = parsedData[key][dataIndex]
-                distance = calcdistance(
-                    (float(busStop["GPS Location"].split(",")[0].strip()),
-                     float(busStop["GPS Location"].split(",")[1].strip())),
-                    (float(mapBoxScrap[list(mapBoxScrap.keys())[i]][coordinates][1]),
-                     float(mapBoxScrap[list(mapBoxScrap.keys())[i]][coordinates][0])))
-                if distance < check:
-                    check = distance
-                    point = mapBoxScrap[list(mapBoxScrap.keys())[i]][coordinates]
-                    returnIndex = coordinates
-                    prevSave = coordinates
-            parsedData[key][dataIndex]['Distance Away'] = check
-            parsedData[key][dataIndex]["Closest Point"] = point
-            parsedData[key][dataIndex]["Index in route[]"] = returnIndex
-        busServiceForRoute = list(mapBoxScrap.keys())[i]
-        routeCounter = 0
-        for dataIndex in range(0, len(parsedData[key])-1):
-            counterDist = 0
-            for routeIndexIterator in range(routeCounter, len(mapBoxScrap[busServiceForRoute]) - 1):
-                origin = (mapBoxScrap[busServiceForRoute][routeIndexIterator][1],
-                          mapBoxScrap[busServiceForRoute][routeIndexIterator][0])
-                destination = (
-                    mapBoxScrap[busServiceForRoute][routeIndexIterator + 1][1],
-                    mapBoxScrap[busServiceForRoute][routeIndexIterator + 1][0])
-                # temp = gmaps.distance_matrix(origin, destination, mode="driving")["rows"][0]["elements"][0][
+testing = RoutingAlgo()
+testing.getRoute("Taman Universiti Terminal", "Opp Suntoyo Enterprise")
+# calcBusToTake([1.4794125239358897, 103.72578357602447])
 
-                #    "distance"][
-                #   "value"]
-                temp = calcdistance(origin, destination)
-                counterDist += temp
+# giveRoute(startLoc, endLoc)
 
-                if parsedData[key][dataIndex + 1]["Closest Point"] == mapBoxScrap[busServiceForRoute][
-                    routeIndexIterator +1]:
-                    parsedData[key][dataIndex]["Distance to Next"] = counterDist
-                    routeCounter = routeIndexIterator
-                    break
-                routeCounter = routeIndexIterator
-    for stopName in graphedData.keys():
-        graphedData[stopName].append({"Buses Supported": []})
-        for i in parsedData.keys():
-            for d in range(0, len(parsedData[i]) - 1):
-                if stopName == parsedData[i][d]["Name"]:
-                    graphedData[stopName][0]["Buses Supported"].append(i)
-                    try:
-                        graphedData[stopName].append({
-                            "Name": parsedData[i][d + 1]["Name"],
-                            "Bus": i,
-                            "Distance Away": float(parsedData[i][d]["Distance to Next"])
-                        })
-                    except KeyError:
-                        graphedData[stopName].append({
-                            "Name": parsedData[i][d + 1]["Name"],
-                            "Bus": i,
-                            "Distance Away": "Issue"
-                        })
 
-                    break
-        graphedData[stopName][0]["Buses Supported"] = list(set(graphedData[stopName][0]["Buses Supported"]))
-
+'''
 
 def calcTime(distance, timeDeets, speed):
     openingTime = datetime.strptime(timeDeets["Daily"].split("-")[0].strip(), '%H:%M')
@@ -141,14 +170,14 @@ def calcBusToTake(place):
     distanceAway = 5000
     for i in parsedData.keys():
         for stop in parsedData[i]:
-            temp = calcdistance(place, [stop["Closest Point"][1], stop["Closest Point"][0]])
+            temp = calcDistance(place, [stop["Closest Point"][1], stop["Closest Point"][0]])
             if temp <= distanceAway:
                 distanceAway = temp
                 busToTake = i
                 busStopToTake = stop["Name"]
     print("Bus to Take: " + busToTake + " going towards " + parsedData[busToTake][-1]["Name"])
     print("Bus Stop to Take: " + busStopToTake)
-'''
+
 def giveRoute(fromHere, toHere):
     with open('../web_scraper/routes.bin', 'rb') as f:
         routes = pickle.load(f)
@@ -196,18 +225,3 @@ def giveRoute(fromHere, toHere):
         return toReturn
 
 '''
-
-
-# def transfer(distancealrtravelled):
-
-
-startLoc = [1.4689940555974177, 103.7368740086021]
-endLoc = [1.4635691591027955, 103.76499694129318]
-preprocessing()
-print(graphedData["Taman Universiti Terminal"])
-dijkstras.Dijkstras(graphedData, "Larkin Terminal", "Taman Universiti Terminal")
-print()
-
-#calcBusToTake([1.4794125239358897, 103.72578357602447])
-
-# giveRoute(startLoc, endLoc)
