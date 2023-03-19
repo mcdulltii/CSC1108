@@ -17,6 +17,7 @@ class RoutingAlgo:
     busstops = None
     graphedData = {}
     routeCalculator = None
+
     def __init__(self):
         self.gmaps = googlemaps.Client("AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns")
         self.busstops = routes_reader.read_excel('bus_stops.xlsx')
@@ -83,43 +84,77 @@ class RoutingAlgo:
         for stopName in self.graphedData.keys():
             self.graphedData[stopName].append({"Buses Supported": []})
             for i in parsedData.keys():
-                for d in range(0, len(parsedData[i]) - 1):
+                for d in range(0, len(parsedData[i])):
+
                     if stopName == parsedData[i][d]["Name"]:
                         self.graphedData[stopName][0]["Buses Supported"].append(i)
-                        try:
+                        if d < len(parsedData[i]) - 1:
                             self.graphedData[stopName].append({
                                 "Name": parsedData[i][d + 1]["Name"],
                                 "Bus": i,
                                 "Distance Away": float(parsedData[i][d]["Distance to Next"])
                             })
-                        except KeyError:
-                            self.graphedData[stopName].append({
-                                "Name": parsedData[i][d + 1]["Name"],
-                                "Bus": i,
-                                "Distance Away": "Issue"
-                            })
-
                         break
+
             self.graphedData[stopName][0]["Buses Supported"] = list(
                 set(self.graphedData[stopName][0]["Buses Supported"]))
             self.routeCalculator = Dijkstras(self.graphedData)
 
     def getRoute(self, startingLocation, endingLocation):
         routeObject = self.routeCalculator.calculateRoute(startingLocation, endingLocation)
-        #Anis Method to be called Here
+        # Anis Method to be called Here
         startingBusStop = startingLocation
         endingBusStop = endingLocation
+        print("Starting Location: " + startingLocation)
+        print("Ending Location: " + endingLocation)
 
         toReturn = {
             "Starting Bus Stop": startingBusStop,
             "Ending Bus Stop": endingBusStop,
-            "Route Taken": [],
             "Buses To Take": [],
-            "Distance Travelled (KM)" : routeObject["Distance"]
+            "Route Taken": {},
+            "Transfer Bus Stops":[],
+            "Distance Travelled (KM)": routeObject["Distance"]
         }
 
-        print(routeObject)
+        for i in routeObject["Transfers"]:
+            toReturn["Buses To Take"].append(i["Transfer From"])
+            toReturn["Buses To Take"].append(i["Transfer To"])
+            toReturn["Transfer Bus Stops"].append(i["TransferStop"])
+        xferBusStop = startingBusStop
+        for i in range(0, len(toReturn["Buses To Take"])):
+            print(toReturn["Buses To Take"][i])
 
+            stopInfo = next((item for item in parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop), None)
+            if i < len(toReturn["Transfer Bus Stops"]):
+                xferBusStop = toReturn["Transfer Bus Stops"][i]
+            else:
+                xferBusStop = endingBusStop
+            nextStopInfo = next((item for item in parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop),None)
+
+            start = False
+            toReturn["Route Taken"][toReturn["Buses To Take"][i]] = []
+            for d in self.mapBoxScrap[
+                list(self.mapBoxScrap.keys())[list(parsedData.keys()).index(toReturn["Buses To Take"][i])]]:
+                if d == nextStopInfo["Closest Point"]:
+                    print("Break!")
+                    break
+                if start:
+                    toReturn["Route Taken"][toReturn["Buses To Take"][i]].append(d)
+                else:
+                    if d == stopInfo["Closest Point"]:
+                        start = True
+        '''
+        {
+            Starting Bus Stop: startBusStop,
+            Ending Bus Stop: endBusStop,
+            Buses To Take: listOfBusesToTake, if there is more than 1 means there's a transfer,
+            Route Taken: {Bus number: [list of routes...], Bus number 2: [list of routes....],
+            Distance Travelled (KM) : distance travelled
+        }
+        '''
+        print(toReturn)
+        return toReturn
 
 def calcDistance(coordinate1, coordinate2):
     R = 6373.0  # earth
@@ -136,9 +171,8 @@ def calcDistance(coordinate1, coordinate2):
     return distance
 
 
-
 testing = RoutingAlgo()
-testing.getRoute("Taman Universiti Terminal", "Opp Suntoyo Enterprise")
+testing.getRoute("Taman Universiti Terminal", "Johor Islamic Complex")
 # calcBusToTake([1.4794125239358897, 103.72578357602447])
 
 # giveRoute(startLoc, endLoc)
