@@ -53,11 +53,11 @@ class Dijkstras:
                 for i in self.graph[currentBusStop][2]["Stops Nearby"]:
                     if self.distance[currentBusStop] > self.distance[i]:
                         nextBusStop = i
-                        print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
+                        # print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
                             self.distance[currentBusStop]))
-                        print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
-                        print("Detected nearer bus stop")
-                        print(self.distance[i])
+                        # print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
+                        # print("Detected nearer bus stop")
+                        # print(self.distance[i])
                         walkingXfer = True
 
                 if len(nextBusStop) != 0 and \
