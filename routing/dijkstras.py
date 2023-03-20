@@ -1,29 +1,24 @@
-import math
-import queue
 import sys
-
-from heap import Heap, printArr
 
 
 class Dijkstras:
+    startingForToReturn = None
     toReturn = None
     graph = None
-    startingForToReturn = None
-    prev = {}
     distance = {}
-    test = {}
+    prev = {}
 
     def __init__(self, graph):
         self.graph = graph
 
-    def calculateRoute(self, end, start):
+
+    def calculate_route(self, end: str, start: str):
         if self.startingForToReturn != start:
             self.startingForToReturn = start
             q = []
             for i in self.graph:
                 self.prev[i] = []
                 self.distance[i] = sys.maxsize
-                self.test[i] = []
                 q.append(i)
             self.distance[self.startingForToReturn] = 0
             while len(q) != 0:
@@ -36,8 +31,6 @@ class Dijkstras:
                         if alt < self.distance[self.graph[v][i]["Name"]]:
                             self.distance[self.graph[v][i]["Name"]] = alt
                             self.prev[self.graph[v][i]["Name"]] = v
-                            self.test[self.graph[v][i]["Name"]].append(self.distance[v])
-                            self.test[self.graph[v][i]["Name"]].append(self.graph[v][i]["Distance Away"])
 
         toReturn = {"Transfers": []}
         pathing = [end]
@@ -54,34 +47,29 @@ class Dijkstras:
                 currentBusStop = nextBusStop
                 nextBusStop = self.prev[nextBusStop]
                 if busTaking == None:
-                    busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(
-                        self.graph[currentBusStop][0]["Buses Supported"])
+                    busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(self.graph[currentBusStop][0]["Buses Supported"])
 
-                for i in self.graph[currentBusStop][2]["Stops Nearby"]:
-
-                    if self.distance[currentBusStop] > self.distance[i]:
-                        print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
-                            self.distance[currentBusStop]))
-                        print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
-
-                        print("Detected nearer bus stop")
-                        print(self.distance[i])
+                # for i in self.graph[currentBusStop][2]["Stops Nearby"]:
+                #     if self.distance[currentBusStop] > self.distance[i]:
+                #         print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
+                #             self.distance[currentBusStop]))
+                #         print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
+                #         print("Detected nearer bus stop")
+                #         print(self.distance[i])
                 if len(nextBusStop) != 0 and \
-                        bool(set(busTaking).isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"]) & set(
-                            self.graph[nextBusStop][0]["Buses Supported"]))):
+                        bool(set(busTaking).isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"]) & \
+                        set(self.graph[nextBusStop][0]["Buses Supported"]))):
                     if transferCount != 0:
                         toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
-                    # transfer detected in path
+                    # Transfer detected in path
                     toReturn["Transfers"].append({
                         "TransferStop": currentBusStop,
                         "Transfer From": list(busTaking)[0],
                         "Transfer To": ""
                     })
-                    busTaking = set(self.graph[currentBusStop][0]["Buses Supported"]) & set(
-                        self.graph[nextBusStop][0]["Buses Supported"])
+                    busTaking = set(self.graph[currentBusStop][0]["Buses Supported"]) & set(self.graph[nextBusStop][0]["Buses Supported"])
 
                     transferCount += 1
-
 
                 if len(nextBusStop) == 0:
                     if (len(toReturn["Transfers"]) == 0):
@@ -93,10 +81,7 @@ class Dijkstras:
                     else:
                         toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
                     break
-                busTaking = busTaking & set(
-                    self.graph[nextBusStop][0]["Buses Supported"])
-        print(pathing)
+                busTaking = busTaking & set(self.graph[nextBusStop][0]["Buses Supported"])
         toReturn["Distance"] = self.distance[end]
-        print(toReturn)
         self.toReturn = toReturn
         return toReturn
