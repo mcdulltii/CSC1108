@@ -29,7 +29,7 @@ class Dijkstras:
             while len(q) != 0:
                 v = min(q, key=self.distance.get)
                 q.remove(v)
-                for i in range(1, len(self.graph[v])):
+                for i in range(3, len(self.graph[v])):
                     # list of verticles connected to v
                     if self.graph[v][i]["Name"] in q:
                         alt = self.distance[v] + self.graph[v][i]["Distance Away"]
@@ -40,11 +40,11 @@ class Dijkstras:
                             self.test[self.graph[v][i]["Name"]].append(self.graph[v][i]["Distance Away"])
 
         toReturn = {"Transfers": []}
-        print(self.distance)
         pathing = [end]
         nextBusStop = self.prev[end]
-        print(self.test)
         # take note of crossing over
+        busTaking = None
+        transferCount = 0
         while nextBusStop:
             # Logic for catch xfer is here
             # prev current next to get xfer details
@@ -53,32 +53,40 @@ class Dijkstras:
                 previousBusStop = pathing[pathing.index(nextBusStop) - 1]
                 currentBusStop = nextBusStop
                 nextBusStop = self.prev[nextBusStop]
-                if currentBusStop != start and len(nextBusStop) != 0 and \
-                        bool(set(self.graph[previousBusStop][0]["Buses Supported"]).isdisjoint(
-                            self.graph[nextBusStop][0]["Buses Supported"])):
+                if (busTaking == None):
+                    busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(
+                        self.graph[currentBusStop][0]["Buses Supported"])
+
+                """for i in self.graph[currentBusStop][2]["Stops Nearby"]:
+                    print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
+                        self.distance[currentBusStop]))
+                    print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
+
+                    if self.distance[currentBusStop] > self.distance[i]:
+                        print("Detected nearer bus stop")
+                        print(self.distance[i])"""
+                if len(nextBusStop) != 0 and \
+                        bool(set(busTaking).isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"]) & set(
+                        self.graph[nextBusStop][0]["Buses Supported"]))):
+                    # transfer detected in path
                     toReturn["Transfers"].append({
                         "TransferStop": currentBusStop,
-                        "Transfer From": "",
+                        "Transfer From": list(busTaking)[0],
                         "Transfer To": ""
                     })
+                    busTaking = set(self.graph[currentBusStop][0]["Buses Supported"]) & set(
+                    self.graph[nextBusStop][0]["Buses Supported"])
+
+                    transferCount += 1
+                    if(transferCount != 1):
+                        toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
+                if len(nextBusStop) == 0:
+                    toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
+                    break
+                busTaking = busTaking & set(
+                    self.graph[nextBusStop][0]["Buses Supported"])
+
         toReturn["Distance"] = self.distance[end]
-        toReturn["Transfers"].reverse()
-
-        counter = 0
-        checkBusStop = self.graph[end][0]["Buses Supported"]
-
-        busesTaken = []
-        for i in range(1, len(pathing)):
-            checkBusStop = set(checkBusStop) & set(self.graph[pathing[i]][0]["Buses Supported"])
-            if pathing[i] == toReturn["Transfers"][counter]["TransferStop"] or i == len(pathing) - 1:
-                busesTaken.append(checkBusStop)
-                if counter + 1 < len(toReturn["Transfers"]):
-                    counter += 1
-                checkBusStop = self.graph[toReturn["Transfers"][counter]["TransferStop"]][0]["Buses Supported"]
-        print(busesTaken)
-        for i in range(0, len(busesTaken) - 1):
-            toReturn["Transfers"][i]["Transfer From"] = list(busesTaken[i])[0]
-            toReturn["Transfers"][i]["Transfer To"] = list(busesTaken[i + 1])[0]
-
+        print(toReturn)
         self.toReturn = toReturn
         return toReturn

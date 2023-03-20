@@ -83,10 +83,15 @@ class RoutingAlgo:
                     routeCounter = routeIndexIterator
         for stopName in self.graphedData.keys():
             self.graphedData[stopName].append({"Buses Supported": []})
+            self.graphedData[stopName].append({"Close Point": []})
+            self.graphedData[stopName].append({"Stops Nearby": []})
+
+            # self.graphedData[stopName].append({"Close Bus Stops": []})
             for i in parsedData.keys():
                 for d in range(len(parsedData[i]) - 1, -1, -1):
                     if stopName == parsedData[i][d]["Name"]:
                         self.graphedData[stopName][0]["Buses Supported"].append(i)
+                        self.graphedData[stopName][1]["Close Point"].append(parsedData[i][d]["Closest Point"])
                         if d >= 1:
                             self.graphedData[stopName].append({
                                 "Name": parsedData[i][d - 1]["Name"],
@@ -95,9 +100,24 @@ class RoutingAlgo:
                             })
                         break
 
+            """for i in parsedData.keys():
+                for d in range(0, len(parsedData[i])):"""
+
             self.graphedData[stopName][0]["Buses Supported"] = list(
                 set(self.graphedData[stopName][0]["Buses Supported"]))
-            self.routeCalculator = Dijkstras(self.graphedData)
+            self.graphedData[stopName][1]["Close Point"] = list({tuple(x) for x in
+                                                            self.graphedData[stopName][1]["Close Point"]})
+            for a in parsedData.keys():
+                for d in parsedData[a]:
+                    if calcDistance(
+                            [d["Closest Point"][1], d["Closest Point"][0]],
+                            [self.graphedData[stopName][1]["Close Point"][0][1],
+                             self.graphedData[stopName][1]["Close Point"][0][0]]) < 0.15 and d["Name"] != stopName:
+                        self.graphedData[stopName][2]["Stops Nearby"].append(d["Name"])
+            self.graphedData[stopName][2]["Stops Nearby"] = list(
+                set(self.graphedData[stopName][2]["Stops Nearby"]))
+
+        self.routeCalculator = Dijkstras(self.graphedData)
 
     def getRoute(self, startingLocation, endingLocation):
         routeObject = self.routeCalculator.calculateRoute(startingLocation, endingLocation)
@@ -115,13 +135,14 @@ class RoutingAlgo:
             "Transfer Bus Stops": [],
             "Distance Travelled (KM)": routeObject["Distance"]
         }
+        print(routeObject)
 
         for i in routeObject["Transfers"]:
             toReturn["Buses To Take"].append(i["Transfer From"])
             toReturn["Buses To Take"].append(i["Transfer To"])
             toReturn["Transfer Bus Stops"].append(i["TransferStop"])
         xferBusStop = startingBusStop
-        print("whats" + xferBusStop)
+
 
         for i in range(0, len(toReturn["Buses To Take"])):
             stopInfo = next((item for item in parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop),
@@ -133,16 +154,12 @@ class RoutingAlgo:
                 xferBusStop = endingBusStop
             nextStopInfo = next(
                 (item for item in parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop), None)
-            print(stopInfo)
-            print(nextStopInfo)
             start = False
             toReturn["Route Taken"].append({})
             toReturn["Route Taken"][i][toReturn["Buses To Take"][i]] = []
-            print("help")
             for d in self.mapBoxScrap[
                 list(self.mapBoxScrap.keys())[list(parsedData.keys()).index(toReturn["Buses To Take"][i])]]:
                 if d == nextStopInfo["Closest Point"]:
-                    print("Break!")
                     break
                 if start:
                     toReturn["Route Taken"][i][toReturn["Buses To Take"][i]].append(d)
@@ -179,7 +196,11 @@ def calcDistance(coordinate1, coordinate2):
 
 testing = RoutingAlgo()
 
-testing.getRoute("Taman Universiti Terminal", "Johor Islamic Complex")
+#testing.getRoute("Kulai Terminal", "Larkin Terminal")
+testing.getRoute("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")
+#testing.getRoute("Taman Universiti Terminal", "Johor Islamic Complex")
+#testing.getRoute("Taman Universiti Terminal", "Hub PPR Sri Stulang")
+
 # calcBusToTake([1.4794125239358897, 103.72578357602447])
 
 # giveRoute(startLoc, endLoc)
