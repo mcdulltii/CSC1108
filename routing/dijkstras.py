@@ -96,8 +96,8 @@ class Dijkstras:
                         toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
                     break
                 busTaking = busTaking & set(self.graph[nextBusStop][0]["Buses Supported"])
-        print(pathing)
-        print(toReturn)
+        # print(pathing)
+        # print(toReturn)
         toReturn["Distance"] = self.distance[end]
         self.toReturn = toReturn
         return toReturn
