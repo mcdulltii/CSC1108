@@ -106,7 +106,7 @@ class RoutingAlgo:
             self.graphedData[stopName][0]["Buses Supported"] = list(
                 set(self.graphedData[stopName][0]["Buses Supported"]))
             self.graphedData[stopName][1]["Close Point"] = list({tuple(x) for x in
-                                                            self.graphedData[stopName][1]["Close Point"]})
+                                                                 self.graphedData[stopName][1]["Close Point"]})
             for a in parsedData.keys():
                 for d in parsedData[a]:
                     if calcDistance(
@@ -141,14 +141,17 @@ class RoutingAlgo:
             toReturn["Buses To Take"].append(i["Transfer From"])
             toReturn["Buses To Take"].append(i["Transfer To"])
             toReturn["Transfer Bus Stops"].append(i["TransferStop"])
-        #toReturn["Buses To Take"] = list(list(dict.fromkeys(toReturn["Buses To Take"])))
-        #'Buses To Take': ['P211-01', 'P101-loop'],
+        toReturn["Buses To Take"] = list(list(dict.fromkeys(toReturn["Buses To Take"])))
+        if len(toReturn["Buses To Take"]) == 1:
+            toReturn["Transfer Bus Stops"] = ""
         xferBusStop = startingBusStop
-
 
         for i in range(0, len(toReturn["Buses To Take"])):
             stopInfo = next((item for item in parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop),
                             None)
+            toReturn["Route Taken"].append({})
+            toReturn["Route Taken"][i][toReturn["Buses To Take"][i]] = []
+
             if i < len(toReturn["Transfer Bus Stops"]):
                 xferBusStop = toReturn["Transfer Bus Stops"][i]
             else:
@@ -156,8 +159,7 @@ class RoutingAlgo:
             nextStopInfo = next(
                 (item for item in parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop), None)
             start = False
-            toReturn["Route Taken"].append({})
-            toReturn["Route Taken"][i][toReturn["Buses To Take"][i]] = []
+
             for d in self.mapBoxScrap[
                 list(self.mapBoxScrap.keys())[list(parsedData.keys()).index(toReturn["Buses To Take"][i])]]:
                 if d == nextStopInfo["Closest Point"]:
@@ -196,15 +198,13 @@ def calcDistance(coordinate1, coordinate2):
 
 
 testing = RoutingAlgo()
-
+# ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
 #testing.getRoute("Kulai Terminal", "Lotus Plentong (Tesco Extra)") #one of the furthest routes
 #testing.getRoute("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")
-#testing.getRoute("Taman Universiti Terminal", "Johor Islamic Complex")
-testing.getRoute("Hub PPR Sri Stulang", "AEON Tebrau City")
+#testing.getRoute("Taman Universiti Terminal", "Johor Islamic Complex") #Single xfer
+#testing.getRoute("Hub PPR Sri Stulang", "AEON Tebrau City") #Straight Route
 
-# calcBusToTake([1.4794125239358897, 103.72578357602447])
 
-# giveRoute(startLoc, endLoc)
 
 
 '''

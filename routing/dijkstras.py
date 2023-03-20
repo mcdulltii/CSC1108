@@ -58,12 +58,10 @@ class Dijkstras:
                         self.graph[currentBusStop][0]["Buses Supported"])
 
                 for i in self.graph[currentBusStop][2]["Stops Nearby"]:
-
                     if self.distance[currentBusStop] > self.distance[i]:
                         print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
                             self.distance[currentBusStop]))
                         print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
-
                         print("Detected nearer bus stop")
                         print(self.distance[i])
                 if len(nextBusStop) != 0 and \
