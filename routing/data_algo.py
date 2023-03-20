@@ -68,6 +68,11 @@ class RoutingAlgo:
             toReturn["Buses To Take"].append(i["Transfer From"])
             toReturn["Buses To Take"].append(i["Transfer To"])
             toReturn["Transfer Bus Stops"].append(i["TransferStop"])
+
+            if "TransferTOSTOP" in list(i.keys()):
+                toReturn["Transfer Bus Stops"].append(i["TransferTOSTOP"])
+
+
         toReturn["Buses To Take"] = list(dict.fromkeys(toReturn["Buses To Take"]))
         if len(toReturn["Buses To Take"]) == 1:
             toReturn["Transfer Bus Stops"] = ""
@@ -85,11 +90,13 @@ class RoutingAlgo:
                 xferBusStop = endingBusStop
             nextStopInfo = next(
                 (item for item in self.parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop), None)
+            print(nextStopInfo)
             start = False
 
             for d in self.mapBoxScrap[
                 list(self.mapBoxScrap.keys())[list(self.parsedData.keys()).index(toReturn["Buses To Take"][i])]]:
                 if d == nextStopInfo["Closest Point"]:
+                    print("Break")
                     break
                 if start:
                     toReturn["Route Taken"][i][toReturn["Buses To Take"][i]].append(d)
@@ -177,7 +184,7 @@ class RoutingAlgo:
             for coordinates in range(prevSave, len(self.mapBoxScrap[list(self.mapBoxScrap.keys())[index]])):
                 counter += 1
                 # Limit for how many route points to check
-                if (counter == 51):
+                if counter == 51:
                     break
                 busStop = self.parsedData[key][dataIndex]
                 # Calculate distance between bus stop and bus route point
@@ -255,10 +262,11 @@ def main():
     routes = RoutingAlgo(filepath)
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
-    # print(routes.get_route("Kulai Terminal", "Lotus Plentong (Tesco Extra)")) #one of the furthest routes
-    # print(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City"))
+    print(routes.get_route("Kulai Terminal", "Lotus Plentong (Tesco Extra)")) #one of the furthest routes
+    # print(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
     # print(routes.get_route("Taman Universiti Terminal", "Johor Islamic Complex")) #Single xfer
     # print(routes.get_route("Hub PPR Sri Stulang", "AEON Tebrau City")) #Straight Route
+    # print(routes.get_route("Kulai Terminal", "Senai Airport Terminal"))
 
 
 if __name__ == "__main__":
