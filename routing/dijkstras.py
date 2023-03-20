@@ -1,9 +1,5 @@
-import math
-import queue
+
 import sys
-
-from heap import Heap, printArr
-
 
 class Dijkstras:
     toReturn = None
@@ -50,7 +46,6 @@ class Dijkstras:
             # prev current next to get xfer details
             pathing.append(nextBusStop)
             if pathing[pathing.index(nextBusStop) - 1]:
-                previousBusStop = pathing[pathing.index(nextBusStop) - 1]
                 currentBusStop = nextBusStop
                 nextBusStop = self.prev[nextBusStop]
                 if busTaking == None:
@@ -61,6 +56,9 @@ class Dijkstras:
                     if self.distance[currentBusStop] > self.distance[i]:
                         print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
                             self.distance[currentBusStop]))
+                #{'Transfers': [{'TransferStop': 'Skudai Parade',
+                # 'Transfer From': 'P411-01', 'Transfer To': 'P403-loop'}], 'Distance': 34.96902713503821}
+                        nextBusStop = i
                         print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
                         print("Detected nearer bus stop")
                         print(self.distance[i])

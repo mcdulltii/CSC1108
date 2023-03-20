@@ -189,7 +189,7 @@ def calcDistance(coordinate1, coordinate2):
     lat2 = radians(float(coordinate2[0]))
     lon2 = radians(float(coordinate2[1]))
     dlon = lon2 - lon1
-    dlat = lat2 - lat1;
+    dlat = lat2 - lat1
 
     a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
@@ -204,6 +204,13 @@ testing = RoutingAlgo()
 #testing.getRoute("Taman Universiti Terminal", "Johor Islamic Complex") #Single xfer
 #testing.getRoute("Hub PPR Sri Stulang", "AEON Tebrau City") #Straight Route
 
+#EXAMPLE ROUTE 1 KAMPUNG MELAYU KULAI -> SENAI AIRPORT TERMINAL
+#EXPECTED P411 - > CROSS ROAD TAKE P403 @IMPORTANT
+#FAILING CAUSE OF NOT WALKING OPPOSITE
+testing.getRoute("Kulai Terminal", "Senai Airport Terminal")
+
+#EXAMPLE ROUTE 2, SIMPLE XFER EXPECTED P102 - P106 --- PASS
+#testing.getRoute("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")
 
 
 
