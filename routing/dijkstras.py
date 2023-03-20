@@ -53,21 +53,24 @@ class Dijkstras:
                 previousBusStop = pathing[pathing.index(nextBusStop) - 1]
                 currentBusStop = nextBusStop
                 nextBusStop = self.prev[nextBusStop]
-                if (busTaking == None):
+                if busTaking == None:
                     busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(
                         self.graph[currentBusStop][0]["Buses Supported"])
 
-                """for i in self.graph[currentBusStop][2]["Stops Nearby"]:
-                    print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
-                        self.distance[currentBusStop]))
-                    print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
+                for i in self.graph[currentBusStop][2]["Stops Nearby"]:
 
                     if self.distance[currentBusStop] > self.distance[i]:
+                        print("current distance from: " + currentBusStop + " to" + start + " is : " + str(
+                            self.distance[currentBusStop]))
+                        print("current distance from: " + i + " to" + start + " is : " + str(self.distance[i]))
+
                         print("Detected nearer bus stop")
-                        print(self.distance[i])"""
+                        print(self.distance[i])
                 if len(nextBusStop) != 0 and \
                         bool(set(busTaking).isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"]) & set(
-                        self.graph[nextBusStop][0]["Buses Supported"]))):
+                            self.graph[nextBusStop][0]["Buses Supported"]))):
+                    if transferCount != 0:
+                        toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
                     # transfer detected in path
                     toReturn["Transfers"].append({
                         "TransferStop": currentBusStop,
@@ -75,17 +78,24 @@ class Dijkstras:
                         "Transfer To": ""
                     })
                     busTaking = set(self.graph[currentBusStop][0]["Buses Supported"]) & set(
-                    self.graph[nextBusStop][0]["Buses Supported"])
+                        self.graph[nextBusStop][0]["Buses Supported"])
 
                     transferCount += 1
-                    if(transferCount != 1):
-                        toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
+
+
                 if len(nextBusStop) == 0:
-                    toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
+                    if (len(toReturn["Transfers"]) == 0):
+                        toReturn["Transfers"].append({
+                            "TransferStop": end,
+                            "Transfer From": list(busTaking)[0],
+                            "Transfer To": list(busTaking)[0],
+                        })
+                    else:
+                        toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
                     break
                 busTaking = busTaking & set(
                     self.graph[nextBusStop][0]["Buses Supported"])
-
+        print(pathing)
         toReturn["Distance"] = self.distance[end]
         print(toReturn)
         self.toReturn = toReturn
