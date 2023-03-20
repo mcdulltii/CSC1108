@@ -90,13 +90,11 @@ class RoutingAlgo:
                 xferBusStop = endingBusStop
             nextStopInfo = next(
                 (item for item in self.parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop), None)
-            print(nextStopInfo)
             start = False
 
             for d in self.mapBoxScrap[
                 list(self.mapBoxScrap.keys())[list(self.parsedData.keys()).index(toReturn["Buses To Take"][i])]]:
                 if d == nextStopInfo["Closest Point"]:
-                    print("Break")
                     break
                 if start:
                     toReturn["Route Taken"][i][toReturn["Buses To Take"][i]].append(d)
