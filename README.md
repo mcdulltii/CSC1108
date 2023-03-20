@@ -5,9 +5,11 @@
 - googlemaps
 - Flask
 - flask_cors
+- pandas
 - python-dotenv
 - selenium
 - tqdm
+- openpyxl
 
 ## Setup
 
