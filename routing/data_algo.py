@@ -3,13 +3,13 @@ import sys
 import time
 import pickle
 import googlemaps
+import pprint as pp
 from math import sin, cos, sqrt, atan2, radians
 from datetime import datetime
 
-from dijkstras import Dijkstras
-
 sys.path.append('../CSC1108')
 from routes_reader.routes_reader import RoutesReader
+from routing.dijkstras import Dijkstras
 
 
 class RoutingAlgo:
@@ -22,7 +22,7 @@ class RoutingAlgo:
     graphedData = {}
     parsedData = {}
 
-    def __init__(self, routes_path: str) -> None:
+    def __init__(self) -> None:
         # Initialize RoutesReader class
         self.routes_reader = RoutesReader()
         # Read bus stops from excel
@@ -30,6 +30,8 @@ class RoutingAlgo:
         # Initialize Google maps API
         self.gmaps = googlemaps.Client("AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns")
         # Load bus routes from file
+        dirpath = os.path.dirname(os.path.realpath(__file__))
+        routes_path = os.path.join(dirpath, "../web_scraper/routes.bin")
         with open(routes_path, 'rb') as f:
             self.mapBoxScrap = pickle.load(f)
         self._load_bus_stops()
@@ -51,8 +53,8 @@ class RoutingAlgo:
 
         # TODO: Anis Method to be called Here
 
-        print("Starting Location: " + startingBusStop)
-        print("Ending Location: " + endingBusStop)
+        # print("Starting Location: " + startingBusStop)
+        # print("Ending Location: " + endingBusStop)
 
         toReturn = {
             "Starting Bus Stop": startingBusStop,
@@ -62,7 +64,7 @@ class RoutingAlgo:
             "Transfer Bus Stops": [],
             "Distance Travelled (KM)": routeObject["Distance"]
         }
-        print(routeObject)
+        # print(routeObject)
 
         for i in routeObject["Transfers"]:
             toReturn["Buses To Take"].append(i["Transfer From"])
@@ -93,18 +95,21 @@ class RoutingAlgo:
             start = False
 
             for d in self.mapBoxScrap[
-                list(self.mapBoxScrap.keys())[list(self.parsedData.keys()).index(toReturn["Buses To Take"][i])]]:
+                list(self.mapBoxScrap.keys())[
+                    list(self.parsedData.keys()).index(toReturn["Buses To Take"][i])
+                ]
+            ]:
                 if d == nextStopInfo["Closest Point"]:
                     break
                 if start:
-                    toReturn["Route Taken"][i][toReturn["Buses To Take"][i]].append(d)
+                    toReturn["Route Taken"][i][toReturn["Buses To Take"][i]].append({'lat': d[1],'lng': d[0]})
                 else:
                     if d == stopInfo["Closest Point"]:
                         start = True
         return toReturn
 
 
-    def _load_bus_stops(self):
+    def _load_bus_stops(self) -> None:
         # Iterate bus stops
         for i in range(0, len(self.busstops)):
             # Initialize bus stop in parsedData dictionary
@@ -238,7 +243,7 @@ class RoutingAlgo:
 
 
     @staticmethod
-    def _calculate_relative_distance(coordinate1, coordinate2):
+    def _calculate_relative_distance(coordinate1, coordinate2) -> float:
         R = 6373.0  # earth
         lat1 = radians(float(coordinate1[0]))
         lon1 = radians(float(coordinate1[1]))
@@ -255,16 +260,14 @@ class RoutingAlgo:
 
 
 def main():
-    dirpath = os.path.dirname(os.path.realpath(__file__))
-    filepath = os.path.join(dirpath, "../web_scraper/routes.bin")
-    routes = RoutingAlgo(filepath)
+    routes = RoutingAlgo()
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
-    print(routes.get_route("Kulai Terminal", "Lotus Plentong (Tesco Extra)")) #one of the furthest routes
-    # print(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
-    # print(routes.get_route("Taman Universiti Terminal", "Johor Islamic Complex")) #Single xfer
-    # print(routes.get_route("Hub PPR Sri Stulang", "AEON Tebrau City")) #Straight Route
-    # print(routes.get_route("Kulai Terminal", "Senai Airport Terminal"))
+    pp.pprint(routes.get_route("Kulai Terminal", "Lotus Plentong (Tesco Extra)")) #one of the furthest routes
+    # pp.pprint(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
+    # pp.pprint(routes.get_route("Taman Universiti Terminal", "Johor Islamic Complex")) #Single xfer
+    # pp.pprint(routes.get_route("Hub PPR Sri Stulang", "AEON Tebrau City")) #Straight Route
+    # pp.pprint(routes.get_route("Kulai Terminal", "Senai Airport Terminal"))
 
 
 if __name__ == "__main__":

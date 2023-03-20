@@ -8,6 +8,8 @@ import os
 import logging
 from custom_logging import CustomFormatter
 
+from routing.data_algo import RoutingAlgo
+
 # Flask initializations
 template_dir = os.path.abspath('static/')
 app = Flask(__name__, template_folder=template_dir)
@@ -34,6 +36,15 @@ def get_routes(bus_number, direction):
     if routes is None or key not in routes.keys():
         return invalid_page('Invalid bus route')
     return jsonify({key: [{'lat': i[1],'lng': i[0]} for i in routes[key]]})
+
+
+@app.route('/route/get/<start>/<end>')
+def get_shortest_route(start, end):
+    routing = RoutingAlgo()
+    try:
+        return jsonify(routing.get_route(start, end))
+    except:
+        return invalid_page('Failed to get shortest route')
 
 
 @app.errorhandler(404)
