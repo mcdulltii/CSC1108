@@ -19,16 +19,16 @@ var busPolylines = {
 };
 // List of bus route colors
 var busRouteColors = {
-  'P101_1': '#FF0000',
-  'P102_1': '#00FF00',
-  'P102_2': '#0000FF',
-  'P106_1': '#0000FF',
-  'P202_1': '#0FF000',
-  'P211_1': '#000FF0',
-  'P211_2': '#000FF0',
-  'P411_1': '#F0000F',
-  'P411_2': '#F0000F',
-  'P403_1': '#000000',
+  'P101_1': '#FC2947',
+  'P102_1': '#03C988',
+  'P102_2': '#03C988',
+  'P106_1': '#820000',
+  'P202_1': '#F0997D',
+  'P211_1': '#B08BBB',
+  'P211_2': '#B08BBB',
+  'P411_1': '#5E8C88',
+  'P411_2': '#5E8C88',
+  'P403_1': '#674747',
 };
 // List of shown overlays
 var showOverlays = {
@@ -115,7 +115,7 @@ function overlayBusRoute(busNumber, direction, color, googleMap) {
         geodesic: true,
         strokeColor: color,
         strokeOpacity: 1.0,
-        strokeWeight: 3,
+        strokeWeight: 4,
       });
       const busPolyline = busPolylines[key];
       // Apply polyline overlay on google map
@@ -231,7 +231,7 @@ function overlayShortestRoute(start, end) {
           geodesic: true,
           strokeColor: busRouteColors[busNumber],
           strokeOpacity: 1.0,
-          strokeWeight: 3,
+          strokeWeight: 4,
         });
         // Apply polyline overlay on google map
         busPolyline.setMap(map);
