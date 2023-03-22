@@ -146,6 +146,9 @@ function placeMarker(location) {
 
   // Send latitude and longitude to the server
   sendMarkerCoord(markerLat,markerLng);
+
+  // Update destination with marker coordinates
+  document.getElementById("destination").value = markerLat + "," + markerLng;
 }
 
 function sendMarkerCoord(lat, lng) {
