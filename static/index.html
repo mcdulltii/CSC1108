@@ -12,6 +12,21 @@
     <tr>
       <td width=20%>
         <!-- HTML and JS elements -->
+        <form action="/form-ori-dest" method="post" id="origin-dest-form" class="input-origin-destination">
+            <div style="display: flex; align-items: flex-start;">
+                <img src="static/images/hollow-circle.png" alt="Start:" id="size-two-icons">
+                <div id="embed-search-btn">
+                    <input type="text" id="origin" name="origin" placeholder="Choose starting point..." id="placeholder-padding">
+                    <button type="submit" onclick="retrieveOriginAndDest()" id="search-btn-pos">
+                        <img src="static/images/search.png" alt="Search now" id="search-btn-size">
+                    </button>
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; margin-top: 20px;">
+                <img src="static/images/destination.png" alt="End:" id="size-two-icons">
+                <input type="text" id="destination" name="destination" placeholder="Choose destination..." id="placeholder-padding">
+             </div>
+        </form>
       </td>
       <td width=80%>
         <div id="floating-panel">

@@ -256,3 +256,23 @@ function getShortestRoute(start, end) {
     xhttp.send();
   });
 }
+
+function retrieveOriginAndDest() {
+
+  const origin = document.getElementById("origin").value;
+  const destination = document.getElementById("destination").value;
+
+  const form = document.getElementById("origin-dest-form");
+
+  const originInput = document.createElement("input");
+  originInput.type = "hidden";
+  originInput.name = "origin";
+  originInput.value = origin;
+  form.appendChild(originInput);
+
+  const destinationInput = document.createElement("input");
+  destinationInput.type = "hidden";
+  destinationInput.name = "destination";
+  destinationInput.value = destination;
+  form.appendChild(destinationInput);
+}

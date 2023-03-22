@@ -1,5 +1,5 @@
 from flask_cors import CORS
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from dotenv import load_dotenv
 import pickle
 import argparse
@@ -45,6 +45,14 @@ def get_shortest_route(start, end):
         return jsonify(routing.get_route(start, end))
     except:
         return invalid_page('Failed to get shortest route')
+
+
+@app.route('/form-ori-dest', methods=["POST"])
+def form_ori_dest():
+    origin = request.form['origin']
+    destination = request.form['destination']
+    print(origin, destination)
+    return 'Received origin and destination: {}, {}'.format(origin, destination)
 
 
 @app.errorhandler(404)
