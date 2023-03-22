@@ -19,16 +19,16 @@ var busPolylines = {
 };
 // List of bus route colors
 var busRouteColors = {
-  'P101_1': '#FF0000',
-  'P102_1': '#00FF00',
-  'P102_2': '#0000FF',
-  'P106_1': '#0000FF',
-  'P202_1': '#0FF000',
-  'P211_1': '#000FF0',
-  'P211_2': '#000FF0',
-  'P411_1': '#F0000F',
-  'P411_2': '#F0000F',
-  'P403_1': '#000000',
+  'P101_1': '#FC2947',
+  'P102_1': '#03C988',
+  'P102_2': '#03C988',
+  'P106_1': '#820000',
+  'P202_1': '#F0997D',
+  'P211_1': '#B08BBB',
+  'P211_2': '#B08BBB',
+  'P411_1': '#5E8C88',
+  'P411_2': '#5E8C88',
+  'P403_1': '#674747',
 };
 // List of shown overlays
 var showOverlays = {
@@ -43,6 +43,19 @@ var showOverlays = {
   'P411_2': false,
   'P403_1': false,
 };
+// Bus route name conversion
+var busRouteNames = {
+  'P101-loop': 'P101_1',
+  'P102-01': 'P102_1',
+  'P102-02': 'P102_2',
+  'P106-loop': 'P106_1',
+  'P202-loop': 'P202_1',
+  'P211-01': 'P211_1',
+  'P211-02': 'P211_2',
+  'P411-01': 'P411_1',
+  'P411-02': 'P411_2',
+  'P403-loop': 'P403_1',
+}
 
 function initialize() {
   // Google map options
@@ -102,7 +115,7 @@ function overlayBusRoute(busNumber, direction, color, googleMap) {
         geodesic: true,
         strokeColor: color,
         strokeOpacity: 1.0,
-        strokeWeight: 3,
+        strokeWeight: 4,
       });
       const busPolyline = busPolylines[key];
       // Apply polyline overlay on google map
@@ -201,4 +214,45 @@ function showBusRoute(key, isShown) {
     // Hide overlay
     overlayBusRoute(keySplit[0], keySplit[1], busRouteColors[key], null);
   }
+}
+
+function overlayShortestRoute(start, end) {
+  getShortestRoute(start, end).then(function(routeInfo) {
+    // Retrieve routes taken
+    const shortestRoute = routeInfo['Route Taken'];
+    // Iterate shortest routes with bus numbers
+    shortestRoute.forEach(route => {
+      for (let busNumber in route) {
+        let busRoute = route[busNumber];
+        busNumber = busRouteNames[busNumber];
+        // Build shortest route polyline array
+        const busPolyline = new google.maps.Polyline({
+          path: busRoute,
+          geodesic: true,
+          strokeColor: busRouteColors[busNumber],
+          strokeOpacity: 1.0,
+          strokeWeight: 4,
+        });
+        // Apply polyline overlay on google map
+        busPolyline.setMap(map);
+      }
+    });
+  });
+}
+
+function getShortestRoute(start, end) {
+  // Return shortest route after GET request succeeds
+  return new Promise(function(resolve, reject) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        var res = JSON.parse(this.responseText);
+        // Return shortest route from GET request
+        resolve(res);
+      }
+    };
+    // Flask api route
+    xhttp.open("GET", "/route/get/" + start + "/" + end, true);
+    xhttp.send();
+  });
 }

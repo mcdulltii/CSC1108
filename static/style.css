@@ -33,3 +33,33 @@ body {
 .dropdown-item {
   width: 100%;
 }
+
+.box {
+  float: left;
+  height: 20px;
+  width: 20px;
+  border: 1px solid black;
+  clear: both;
+}
+
+.box.P101_1 {
+  background-color: #FC2947
+}
+.box.P102_1, .box.P102_2 {
+  background-color: #03C988
+}
+.box.P106_1 {
+  background-color: #820000
+}
+.box.P202_1 {
+  background-color: #F0997D
+}
+.box.P211_1, .box.P211_2 {
+  background-color: #B08BBB
+}
+.box.P411_1, .box.P411_2 {
+  background-color: #5E8C88
+}
+.box.P403_1 {
+  background-color: #674747
+}

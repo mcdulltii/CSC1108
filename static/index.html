@@ -36,7 +36,7 @@
                   </button>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     {% for bus_number in bus_selection %}
-                    <button class="dropdown-item bus-item" name="{{bus_number}}" value="false" type="button">{{bus_number}}</a>
+                    <button class="dropdown-item bus-item" name="{{bus_number}}" value="false" type="button"><div class='box {{bus_number}}'></div>{{bus_number}}</a>
                     {% endfor %}
                   </div>
                 </div>
