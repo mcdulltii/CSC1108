@@ -48,11 +48,20 @@ def get_shortest_route(start, end):
 
 
 @app.route('/form-ori-dest', methods=["POST"])
-def form_ori_dest():
+def get_ori_dest():
     origin = request.form['origin']
     destination = request.form['destination']
     print(origin, destination)
     return 'Received origin and destination: {}, {}'.format(origin, destination)
+
+
+@app.route('/marker_coord', methods=['POST'])
+def get_marker_coord():
+    data = request.get_json()
+    lat = data['lat']
+    lng = data['lng']
+    print(lat, lng)
+    return 'Received latitude and longitude of the marker'
 
 
 @app.errorhandler(404)

@@ -139,6 +139,26 @@ function placeMarker(location) {
       map: map
     });
   }
+
+  // Get latitude and longitude of the marker
+  var markerLat = location.lat();
+  var markerLng = location.lng();
+
+  // Send latitude and longitude to the server
+  sendMarkerCoord(markerLat,markerLng);
+}
+
+function sendMarkerCoord(lat, lng) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/marker_coord', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+      console.log(xhr.responseText);
+    }
+  };
+  var data = JSON.stringify({lat: lat, lng: lng});
+  xhr.send(data);
 }
 
 function getBusRoute(busNumber, direction) {
