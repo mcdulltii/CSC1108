@@ -105,26 +105,8 @@ function initialize() {
     // Hide bus routes
     overlayBusRoutes(false);
   });
+}
 
-  // Add origin and destination event listeners
-  document.getElementById('origin').addEventListener('click', function() {
-    var originClicked;
-    interactiveInputs(originClicked)
-  });
-    // document.getElementById("destination").value = markerLat + "," + markerLng;
-  document.getElementById('destination').addEventListener('click', function() {
-    var destinationClicked;
-    interactiveInputs(destinationClicked)
-  });
-}
-function interactiveInputs() {
-  if (originClicked) {
-    document.getElementById("origin").value = markerLat() + "," + markerLng;
-  }
-  if (destinationClicked) {
-    document.getElementById("destination").value = markerLat() + "," + markerLng;
-  }
-}
 function overlayBusRoute(busNumber, direction, color, googleMap) {
   const key = busNumber + '_' + direction;
   // Retrieve bus routes via GET request
@@ -171,10 +153,6 @@ function placeMarker(location) {
   sendMarkerCoord(markerLat,markerLng);
   google.maps.event.trigger(document.getElementById("origin"), 'click');
 
-  // // Update input origin and destination with marker coordinates
-  // document.getElementById("origin").value = markerLat + "," + markerLng;
-  // document.getElementById("destination").value = markerLat + "," + markerLng;
-  // Update latitude and longitude to input fields
   if (activeInput.id === "start-location" || activeInput.id === "end-location") {
     activeInput.value = markerLat + "," + markerLng;
   }
