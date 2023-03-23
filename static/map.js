@@ -2,6 +2,8 @@
 var map;
 // Marker overlay
 var marker;
+// Focused element
+var activeInput;
 // Overlay shown boolean
 var isHidden = false;
 // List of bus polylines
@@ -172,19 +174,15 @@ function placeMarker(location) {
   // // Update input origin and destination with marker coordinates
   // document.getElementById("origin").value = markerLat + "," + markerLng;
   // document.getElementById("destination").value = markerLat + "," + markerLng;
+  // Update latitude and longitude to input fields
+  if (activeInput.id === "start-location" || activeInput.id === "end-location") {
+    activeInput.value = markerLat + "," + markerLng;
+  }
 }
 
-function sendMarkerCoord(lat, lng) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', '/marker_coord', true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-      console.log(xhr.responseText);
-    }
-  };
-  var data = JSON.stringify({lat: lat, lng: lng});
-  xhr.send(data);
+function setFocusedInput() {
+  // Set latest input field as the active element
+  activeInput = document.activeElement;
 }
 
 function getBusRoute(busNumber, direction) {
@@ -211,6 +209,7 @@ function toggleAllBusCheckbox(isSelected) {
   for (let i=0; i<busItems.length; i++) {
     const busCheckbox = busItems[i];
     const busItemValue = busCheckbox.name;
+    // Toggle all bus checkboxes
     handleBusCheckbox(busItemValue, isSelected);
   }
 }
@@ -303,22 +302,6 @@ function getShortestRoute(start, end) {
   });
 }
 
-function retrieveOriginAndDest() {
-
-  const origin = document.getElementById("origin").value;
-  const destination = document.getElementById("destination").value;
-
-  const form = document.getElementById("origin-dest-form");
-
-  const originInput = document.createElement("input");
-  originInput.type = "hidden";
-  originInput.name = "origin";
-  originInput.value = origin;
-  form.appendChild(originInput);
-
-  const destinationInput = document.createElement("input");
-  destinationInput.type = "hidden";
-  destinationInput.name = "destination";
-  destinationInput.value = destination;
-  form.appendChild(destinationInput);
+function routeCallback(data) {
+  console.log(data);
 }
