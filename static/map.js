@@ -85,7 +85,6 @@ function initialize() {
     busCheckbox.addEventListener('click', function() {
       handleBusCheckbox(busItemValue, null);
     });
-
   }
 
   // Add bus selection event listeners
@@ -146,12 +145,6 @@ function placeMarker(location) {
   // Get latitude and longitude of the marker
   var markerLat = location.lat();
   var markerLng = location.lng();
-
-  // Update
-
-  // Send latitude and longitude to the server
-  sendMarkerCoord(markerLat,markerLng);
-  google.maps.event.trigger(document.getElementById("origin"), 'click');
 
   if (activeInput.id === "start-location" || activeInput.id === "end-location") {
     activeInput.value = markerLat + "," + markerLng;
