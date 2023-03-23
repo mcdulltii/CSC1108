@@ -116,11 +116,11 @@ button[type="submit"] {
   width: 100%;
   padding: 10px;
   border-radius: 4px;
-  background-color: #1a73e8;
+  background-color: rgb(126, 174, 215);
   border: none;
   cursor: pointer;
 }
 
 button[type="submit"]:hover {
-  background-color: #0d6efd;
+  background-color: rgb(145, 181, 213);
 }
