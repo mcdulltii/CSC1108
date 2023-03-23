@@ -83,6 +83,7 @@ function initialize() {
     busCheckbox.addEventListener('click', function() {
       handleBusCheckbox(busItemValue, null);
     });
+
   }
 
   // Add bus selection event listeners
@@ -102,8 +103,26 @@ function initialize() {
     // Hide bus routes
     overlayBusRoutes(false);
   });
-}
 
+  // Add origin and destination event listeners
+  document.getElementById('origin').addEventListener('click', function() {
+    var originClicked;
+    interactiveInputs(originClicked)
+  });
+    // document.getElementById("destination").value = markerLat + "," + markerLng;
+  document.getElementById('destination').addEventListener('click', function() {
+    var destinationClicked;
+    interactiveInputs(destinationClicked)
+  });
+}
+function interactiveInputs() {
+  if (originClicked) {
+    document.getElementById("origin").value = markerLat() + "," + markerLng;
+  }
+  if (destinationClicked) {
+    document.getElementById("destination").value = markerLat() + "," + markerLng;
+  }
+}
 function overlayBusRoute(busNumber, direction, color, googleMap) {
   const key = busNumber + '_' + direction;
   // Retrieve bus routes via GET request
@@ -144,11 +163,15 @@ function placeMarker(location) {
   var markerLat = location.lat();
   var markerLng = location.lng();
 
+  // Update
+
   // Send latitude and longitude to the server
   sendMarkerCoord(markerLat,markerLng);
+  google.maps.event.trigger(document.getElementById("origin"), 'click');
 
-  // Update destination with marker coordinates
-  document.getElementById("destination").value = markerLat + "," + markerLng;
+  // // Update input origin and destination with marker coordinates
+  // document.getElementById("origin").value = markerLat + "," + markerLng;
+  // document.getElementById("destination").value = markerLat + "," + markerLng;
 }
 
 function sendMarkerCoord(lat, lng) {
