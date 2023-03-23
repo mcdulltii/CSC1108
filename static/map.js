@@ -146,6 +146,7 @@ function placeMarker(location) {
   var markerLat = location.lat();
   var markerLng = location.lng();
 
+  // Update latitude and longitude to input fields
   if (activeInput.id === "start-location" || activeInput.id === "end-location") {
     activeInput.value = markerLat + "," + markerLng;
   }
