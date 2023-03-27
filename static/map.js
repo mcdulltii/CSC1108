@@ -31,6 +31,7 @@ var busRouteColors = {
   'P411_1': '#5E8C88',
   'P411_2': '#5E8C88',
   'P403_1': '#674747',
+  'Walking': '#000000',
 };
 // List of shown overlays
 var showOverlays = {
@@ -57,6 +58,7 @@ var busRouteNames = {
   'P411-01': 'P411_1',
   'P411-02': 'P411_2',
   'P403-loop': 'P403_1',
+  'Walking': 'Walking',
 }
 
 function initialize() {
@@ -233,47 +235,31 @@ function showBusRoute(key, isShown) {
   }
 }
 
-function overlayShortestRoute(start, end) {
-  getShortestRoute(start, end).then(function(routeInfo) {
-    // Retrieve routes taken
-    const shortestRoute = routeInfo['Route Taken'];
-    // Iterate shortest routes with bus numbers
-    shortestRoute.forEach(route => {
-      for (let busNumber in route) {
-        let busRoute = route[busNumber];
-        busNumber = busRouteNames[busNumber];
-        // Build shortest route polyline array
-        const busPolyline = new google.maps.Polyline({
-          path: busRoute,
-          geodesic: true,
-          strokeColor: busRouteColors[busNumber],
-          strokeOpacity: 1.0,
-          strokeWeight: 4,
-        });
-        // Apply polyline overlay on google map
-        busPolyline.setMap(map);
+function routeCallback(routeInfo) {
+  // Retrieve routes taken
+  routeInfo.forEach(shortestRoute => {
+    // Iterate shortest routes
+    shortestRoute["Routes"].forEach((route, index) => {
+      var routeType = route["Type"];
+      routeType = busRouteNames[routeType];
+      var routePath = route["Route"];
+      // Connect paths if route type is walking
+      if (routeType === "Walking") {
+        if (index > 0)
+          routePath.unshift(shortestRoute["Routes"][index - 1]["Route"].slice(-1)[0]);
+        if (index < shortestRoute["Routes"].length - 1)
+          routePath.push(shortestRoute["Routes"][index + 1]["Route"][0]);
       }
+      // Build shortest route polyline array
+      const routePolyline = new google.maps.Polyline({
+        path: routePath,
+        geodesic: true,
+        strokeColor: busRouteColors[routeType],
+        strokeOpacity: 1.0,
+        strokeWeight: 4,
+      });
+      // Apply polyline overlay on google map
+      routePolyline.setMap(map);
     });
-  });
-}
-
-function getShortestRoute(start, end) {
-  // Return shortest route after GET request succeeds
-  return new Promise(function(resolve, reject) {
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        var res = JSON.parse(this.responseText);
-        // Return shortest route from GET request
-        resolve(res);
-      }
-    };
-    // Flask api route
-    xhttp.open("GET", "/route/get/" + start + "/" + end, true);
-    xhttp.send();
-  });
-}
-
-function routeCallback(data) {
-  console.log(data);
+  })
 }
