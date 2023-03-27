@@ -30,7 +30,7 @@ class Dijkstras:
                         if alt < self.distance[self.graph[v][i]["Name"]]:
                             self.distance[self.graph[v][i]["Name"]] = alt
                             self.prev[self.graph[v][i]["Name"]] = v
-        print(self.prev)
+        # print(self.prev)
         toReturn = {"Transfers": []}
         pathing = [end]
         nextBusStop = end
@@ -65,13 +65,11 @@ class Dijkstras:
             walkingTransfer = False
             if nextBusStop == start:
                 busesToReturn.append(list(busTaking))
-        print(pathing)
-        print(busesToReturn)
-        print(transfers)
+        # print(pathing)
+        # print(busesToReturn)
+        # print(transfers)
         toReturn = {"Pathing": pathing, "Buses To Return": busesToReturn, "Transfers": transfers,
                     "Distance": distanceToReturn}
-        print(toReturn)
-        # print(pathing)
         # print(toReturn)
         self.toReturn = toReturn
         return toReturn
