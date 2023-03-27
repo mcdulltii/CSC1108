@@ -2,6 +2,8 @@ import os
 import sys
 import time
 import pickle
+from typing import List, Dict, Any
+
 import googlemaps
 import pprint as pp
 from math import sin, cos, sqrt, atan2, radians
@@ -10,6 +12,8 @@ from datetime import datetime
 sys.path.append('../CSC1108')
 from routes_reader.routes_reader import RoutesReader
 from routing.dijkstras import Dijkstras
+from routing.shortest_walk import shortest_walk
+from collections import deque
 
 
 class RoutingAlgo:
@@ -19,6 +23,7 @@ class RoutingAlgo:
     mapBoxScrap = None
     routes_reader = None
     routeCalculator = None
+    walkingRouteCalculator = None
     graphedData = {}
     parsedData = {}
 
@@ -35,10 +40,12 @@ class RoutingAlgo:
         with open(routes_path, 'rb') as f:
             self.mapBoxScrap = pickle.load(f)
         self._load_bus_stops()
+        self.walkingRouteCalculator = shortest_walk(self.parsedData)
+
         self._populate_routes_information()
         self.routeCalculator = Dijkstras(self.graphedData)
 
-    def get_route(self, startingBusStop: str, endingBusStop: str) -> dict:
+    def get_route(self, startingLocation: str, endingLocation: str) -> list[dict[str, list[Any] | Any]]:
         '''
         {
             Starting Bus Stop: startBusStop,
@@ -48,90 +55,122 @@ class RoutingAlgo:
             Distance Travelled (KM) : distance travelled
         }
         '''
+        # GET COORDINATES FROM STRING
+        startingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(startingLocation)
+        endingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(endingLocation)
+        toReturn = {
+            "Routes": []
+        }
+
+
+        print(endingLocationCoords)
+
+        startingCloseBusStop = self.walkingRouteCalculator.find_nearby(startingLocationCoords)
+        startingBusStop = startingCloseBusStop[1]["Name"]
+        print(startingBusStop)
+
+        endingCloseBusStop = self.walkingRouteCalculator.find_nearby(endingLocationCoords)
+        endingBusStop = endingCloseBusStop[1]["Name"]
+        print(endingBusStop)
+        if self._calculate_relative_distance(startingLocationCoords, startingBusStop["GPS Location"] > 0.05):
+            toReturn["Routes"].append(
+                {
+                    "Route":startingCloseBusStop[0],
+                    "Type": "Walking",
+                    "Start": startingLocation,
+                    "End": startingBusStop
+                }
+            )
+
         routeObject = self.routeCalculator.calculate_route(startingBusStop, endingBusStop)
 
-        # TODO: Anis Method to be called Here
+        # print("Walking Route to " + startingBusStop + ":" + str(startingCloseBusStop[0]))
 
-        # print("Starting Location: " + startingBusStop)
-        # print("Ending Location: " + endingBusStop)
-
-        toReturn = {
-            "Starting Bus Stop": startingBusStop,
-            "Ending Bus Stop": endingBusStop,
-            "Buses To Take": [],
-            "Route Taken": [],
-            "Transfer Bus Stops": [],
-            "Distance Travelled (KM)": routeObject["Distance"],
-            "Walking Transfers": []
-        }
-        # print(routeObject)
-
-        for i in routeObject["Transfers"]:
-            toReturn["Buses To Take"].append(i["Transfer From"])
-            toReturn["Transfer Bus Stops"].append(i["TransferStop"])
-
-            if "TransferTOSTOP" in list(i.keys()):
-                toReturn["Transfer Bus Stops"].append(i["TransferTOSTOP"])
-                toReturn["Walking Transfers"].append(i["TransferStop"])
-        toReturn["Buses To Take"] = list(dict.fromkeys(toReturn["Buses To Take"]))
-        if len(toReturn["Buses To Take"]) == 1:
-            toReturn["Transfer Bus Stops"] = ""
-        xferBusStop = startingBusStop
-
-        for i in range(0, len(toReturn["Buses To Take"])):
-            toEnd = False
-            if xferBusStop in toReturn["Walking Transfers"]:
-                xferBusStop = toReturn["Transfer Bus Stops"][toReturn["Transfer Bus Stops"].index(xferBusStop) + 1]
-                stopInfo = next(
-                    (item for item in self.parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop),
-                    None)
-                if i + 2 >= len(toReturn["Buses To Take"]):
-                    toEnd = True
+        startRecording = False
+        busStopStart = routeObject["Pathing"][0]
+        transfers = deque()
+        for transfer in routeObject["Transfers"]:
+            transfers.append(transfer)
+        for busesToTake in routeObject["Buses To Return"]:
+            toReturn["Routes"].append({
+                "Type": busesToTake[0],
+                "Route": []
+            })
+            transferObject = None
+            if len(transfers) != 0:
+                transferObject = transfers.popleft()
+            indexOfBusStopStart = next(
+                (index for (index, d) in enumerate(self.parsedData[busesToTake[0]]) if d["Name"] == busStopStart), None)
+            busPointToCheck = self.parsedData[busesToTake[0]][indexOfBusStopStart]["Closest Point"]
+            print(self.parsedData[busesToTake[0]][indexOfBusStopStart])
+            if transferObject is not None:
+                if transferObject["Type"] == "Walking":
+                    busStopEnd = transferObject["Transfer Stop From"]
+                elif transferObject["Type"] == "On-Site":
+                    busStopEnd = transferObject["Transfer Stop"]
             else:
-                stopInfo = next(
-                    (item for item in self.parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop),
-                    None)
-
-            toReturn["Route Taken"].append({})
-            toReturn["Route Taken"][i][toReturn["Buses To Take"][i]] = []
-
-            if toEnd:
-                xferBusStop = endingBusStop
-            elif i < len(toReturn["Transfer Bus Stops"]):
-                xferBusStop = toReturn["Transfer Bus Stops"][i]
-            else:
-                xferBusStop = endingBusStop
-
-            nextStopInfo = next(
-                (item for item in self.parsedData[toReturn["Buses To Take"][i]] if item["Name"] == xferBusStop), None)
-            print(xferBusStop)
-            print(toReturn["Buses To Take"])
-            start = False
-
-            mapBoxList = self.mapBoxScrap[
-                list(self.mapBoxScrap.keys())[
-                    list(self.parsedData.keys()).index(toReturn["Buses To Take"][i])
-                ]
-            ]
-            counter = 0
+                busStopEnd = routeObject["Pathing"][-1]
+            indexOfBusStopEnd = next(
+                (index for (index, d) in enumerate(self.parsedData[busesToTake[0]]) if d["Name"] == busStopEnd), None)
+            busPointEnd = self.parsedData[busesToTake[0]][indexOfBusStopEnd]["Closest Point"]
+            indexOf = list(self.parsedData.keys()).index(busesToTake[0])
+            correspondingMapBoxKey = list(self.mapBoxScrap.keys())[indexOf]
+            pointIterator = 0
+            indexOfRouteObj = next(
+                (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
+            toReturn["Routes"][indexOfRouteObj]["Starting"] = busStopStart
+            toReturn["Routes"][indexOfRouteObj]["Ending"] = busStopEnd
+            startRecording = False
             while True:
-                d = mapBoxList[counter]
-                if start:
-                    toReturn["Route Taken"][i][toReturn["Buses To Take"][i]].append({'lat': d[1], 'lng': d[0]})
+                point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
+                if point == busPointToCheck:
+                    print("MATCH")
+                    startRecording = True
+                if startRecording:
+                    toReturn["Routes"][indexOfRouteObj]["Route"].append(point)
+                if point == busPointEnd and startRecording:
+                    if transferObject is not None:
+                        if transferObject["Type"] == "Walking":
+                            busStopStart = transferObject["Transfer Stop To"]
+                            nextBus = routeObject["Buses To Return"][
+                                routeObject["Buses To Return"].index(busesToTake) + 1]
 
-                    if d == mapBoxList[-1]:
-                        # THIS SHOULD ONLY APPLY TO LOOPING BUSES
-                        #
-                        toReturn["Transfer Bus Stops"].append(self.parsedData[toReturn["Buses To Take"][i]][-1]["Name"])
-                        counter = 0
-                else:
-                    if d == stopInfo["Closest Point"]:
-                        start = True
-                if d == nextStopInfo["Closest Point"] and start:
+                            indexOfBusStopWalkingEnd = next(
+                                (index for (index, d) in enumerate(self.parsedData[nextBus[0]]) if
+                                 d["Name"] == busStopStart), None)
+                            indexOfBusStopWalkingStart = next(
+                                (index for (index, d) in enumerate(self.parsedData[busesToTake[0]]) if
+                                 d["Name"] == transferObject["Transfer Stop From"]), None)
+                            coordinatesEnd = self.parsedData[busesToTake[0]][indexOfBusStopWalkingEnd]["GPS Location"]
+                            coordinatesStart = self.parsedData[nextBus[0]][indexOfBusStopWalkingStart]["GPS Location"]
+                            toReturn["Routes"].append({
+                                "Route": self.walkingRouteCalculator.get_walking_route(coordinatesStart,
+                                                                                       coordinatesEnd),
+                                "Type": "Walking",
+                                "Start": transferObject["Transfer Stop From"],
+                                "End": busStopStart
+                            })
+                        else:
+                            busStopStart = transferObject["Transfer Stop"]
                     break
-                counter += 1
+                pointIterator += 1
+                print(pointIterator)
+                if pointIterator == len(self.mapBoxScrap[correspondingMapBoxKey]):
+                    print("reset")
+                    pointIterator = 0
+        if self._calculate_relative_distance(endingLocation,
+                                             endingBusStop["GPS Location"] > 0.05):
+            toReturn["Routes"].append(
+                {
+                    "Route": endingBusStop[0],
+                    "Type": "Walking",
+                    "Start": endingBusStop[1]["Name"],
+                    "End": endingLocation
+                }
+            )
+        returnRoutes = [toReturn]
         print(toReturn)
-        return toReturn
+        return returnRoutes
 
     def _load_bus_stops(self) -> None:
         # Iterate bus stops
@@ -284,11 +323,13 @@ def main():
     routes = RoutingAlgo()
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
-    pp.pprint(routes.get_route("Kulai Terminal", "Lotus Plentong (Tesco Extra)"))  # one of the furthest routes
+    # TESTING WALKING LIAO HONG GAN
+    pp.pprint(routes.get_route("Kulai Terminal", "Senai Airport Terminal"))  # one of the furthest routes
+
     # pp.pprint(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
     # pp.pprint(routes.get_route("Taman Universiti Terminal", "Johor Islamic Complex")) #Single xfer
     # pp.pprint(routes.get_route("Hub PPR Sri Stulang", "AEON Tebrau City")) #Straight Route
-    # pp.pprint(routes.get_route("Kulai Terminal", "Senai Airport Terminal"))
+    # pp.pprint(routes.get_route("81400 Senai, Johor, Malaysia", "No.4, Jalan Pendidikan, Taman Universiti, 81300 Johor Bahru, Johor, Malaysia"))
 
 
 if __name__ == "__main__":

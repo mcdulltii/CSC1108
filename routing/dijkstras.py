@@ -30,70 +30,48 @@ class Dijkstras:
                         if alt < self.distance[self.graph[v][i]["Name"]]:
                             self.distance[self.graph[v][i]["Name"]] = alt
                             self.prev[self.graph[v][i]["Name"]] = v
-
+        print(self.prev)
         toReturn = {"Transfers": []}
         pathing = [end]
-        nextBusStop = self.prev[end]
+        nextBusStop = end
         walkingXfer = False
         # take note of crossing over
         busTaking = None
-        transferCount = 0
-        while nextBusStop:
-            # Logic for catch xfer is here
-            # prev current next to get xfer details
+        busesToReturn = []
+        transfers = []
+        walkingTransfer = False;
+        distanceToReturn = self.distance[end]
+        while nextBusStop != start:
+            currentBusStop = nextBusStop
+            nextBusStop = self.prev[currentBusStop]
+            for closeBusStop in self.graph[currentBusStop][2]["Stops Nearby"]:
+                if self.distance[closeBusStop]<self.distance[currentBusStop] and closeBusStop != nextBusStop:
+                    nextBusStop = closeBusStop
+                    walkingTransfer = True
+            if busTaking is None:
+                busTaking = set(self.graph[currentBusStop][0]["Buses Supported"])
+            if busTaking.isdisjoint(set(self.graph[nextBusStop][0]["Buses Supported"])):
+                busesToReturn.append(list(busTaking))
+                if walkingTransfer:
+                    transfers.append({"Transfer Stop From": currentBusStop,"Transfer Stop To": nextBusStop, "Type": "Walking"})
+                    distanceToReturn -= self.distance[currentBusStop]
+                    distanceToReturn += self.distance[nextBusStop]
+                else:
+                    transfers.append({"Transfer Stop": currentBusStop, "Type": "On-Site"})
+                busTaking = set(self.graph[nextBusStop][0]["Buses Supported"])
+            else:
+                busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(busTaking)
             pathing.append(nextBusStop)
-            if pathing[pathing.index(nextBusStop) - 1]:
-                previousBusStop = pathing[pathing.index(nextBusStop) - 1]
-                currentBusStop = nextBusStop
-                nextBusStop = self.prev[nextBusStop]
-                if busTaking == None:
-                    busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(
-                        self.graph[currentBusStop][0]["Buses Supported"])
-
-                for i in self.graph[currentBusStop][2]["Stops Nearby"]:
-                    if self.distance[currentBusStop] > self.distance[i]:
-                        nextBusStop = i
-
-                        walkingXfer = True
-
-                if len(nextBusStop) != 0 and \
-                        bool(set(busTaking).isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"]) & \
-                                                       set(self.graph[nextBusStop][0]["Buses Supported"]))):
-                    if transferCount != 0:
-                        toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
-                    # Transfer detected in path
-                    if walkingXfer:
-                        toReturn["Transfers"].append({
-                            "TransferStop": currentBusStop,
-                            "TransferTOSTOP": nextBusStop,
-                            "Transfer From": list(busTaking)[0],
-                            "Transfer To": ""
-                        })
-                        walkingXfer = False;
-                    else:
-                        toReturn["Transfers"].append({
-                            "TransferStop": currentBusStop,
-                            "Transfer From": list(busTaking)[0],
-                            "Transfer To": ""
-                        })
-                    busTaking = set(self.graph[currentBusStop][0]["Buses Supported"]) & set(
-                        self.graph[nextBusStop][0]["Buses Supported"])
-
-                    transferCount += 1
-
-                if len(nextBusStop) == 0:
-                    if (len(toReturn["Transfers"]) == 0):
-                        toReturn["Transfers"].append({
-                            "TransferStop": end,
-                            "Transfer From": list(busTaking)[0],
-                            "Transfer To": list(busTaking)[0],
-                        })
-                    else:
-                        toReturn["Transfers"][transferCount - 1]["Transfer To"] = list(busTaking)[0]
-                    break
-                busTaking = busTaking & set(self.graph[nextBusStop][0]["Buses Supported"])
+            walkingTransfer = False
+            if nextBusStop == start:
+                busesToReturn.append(list(busTaking))
+        print(pathing)
+        print(busesToReturn)
+        print(transfers)
+        toReturn = {"Pathing": pathing, "Buses To Return": busesToReturn, "Transfers": transfers,
+                    "Distance": distanceToReturn}
+        print(toReturn)
         # print(pathing)
         # print(toReturn)
-        toReturn["Distance"] = self.distance[end]
         self.toReturn = toReturn
         return toReturn

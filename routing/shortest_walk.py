@@ -3,7 +3,6 @@ import googlemaps
 
 from math import radians, cos, sin, asin, sqrt
 from routes_reader.routes_reader import RoutesReader
-from data_algo import RoutingAlgo
 
 # hardcoded origin location
 # origin_loc = (1.472841, 103.780508)
@@ -14,16 +13,14 @@ from data_algo import RoutingAlgo
 
 class shortest_walk:
 
-    def __init__(self):
+    def __init__(self, bus_stops):
         # routes reader class
-        self.routes_reader = RoutesReader()
         # read excel sheet to get bus stops
         # bus stop coordinates
         # format:
         # { {'P101': {'Name': 'Larkin Terminal ⊃ Johor Bahru City (loop service)', 'Coordinates': '41.40338, 2.17403'} }
         # bus_stops = RoutesReader.read_excel('routeRecords.xlxs')
-        this_class = RoutingAlgo()
-        self.bus_stops = this_class._load_bus_stops()
+        self.list_of_bus_stops = bus_stops
 
     # googlemaps api key
     gmaps = googlemaps.Client(key='AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns')
@@ -57,19 +54,28 @@ class shortest_walk:
 
         return dist
 
+    def string_to_coordinate(self, location_in_string):
+        google_return = self.gmaps.geocode(location_in_string)
+        to_return = [google_return[0]['geometry']['location'] ['lat'], google_return[0]['geometry']['location'] ['lng']]
+        return to_return
     # locate nearest bus stop
-    def find_nearby(self, location, bus_stops):
+    def get_walking_route(self,locationStart, locationEnd):
+        directions_result = self.gmaps.directions(locationStart, locationEnd)
+        route_coordinates = [(step['start_location']['lat'], step['start_location']['lng'])
+                             for step in directions_result[0]['legs'][0]['steps']]
+        return route_coordinates
+
+    def find_nearby(self, location):
         # set the search radius
         max_distance = 30
         closest_stop = (0, 0)
         nearby = {}
-        loc = location.split(",")
-        user_lat = float(loc[0])
-        user_lon = float(loc[1])
+        user_lat = location[0]
+        user_lon = location[1]
 
         # iterate through bus stops
-        for key in bus_stops:
-            for bus_stop in bus_stops[key]:
+        for key in self.list_of_bus_stops:
+            for bus_stop in self.list_of_bus_stops[key]:
 
                 # split each bus stop coordinate into both latitude and longitude
                 coords = bus_stop['GPS Location'].split(", ")
@@ -107,4 +113,4 @@ class shortest_walk:
         else:
             route_coordinates = None
 
-        return route_coordinates
+        return [route_coordinates, closest_stop]
