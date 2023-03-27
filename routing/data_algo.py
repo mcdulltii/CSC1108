@@ -62,16 +62,22 @@ class RoutingAlgo:
             "Routes": []
         }
 
-        # print(endingLocationCoords)
+
+        print(endingLocationCoords)
 
         startingCloseBusStop = self.walkingRouteCalculator.find_nearby(startingLocationCoords)
         startingBusStop = startingCloseBusStop[1]["Name"]
-        # print(startingBusStop)
+        gpsBusStopStart = startingCloseBusStop[1]["GPS Location"].split(", ")
+
+
 
         endingCloseBusStop = self.walkingRouteCalculator.find_nearby(endingLocationCoords)
         endingBusStop = endingCloseBusStop[1]["Name"]
-        # print(endingBusStop)
-        if self._calculate_relative_distance(startingLocationCoords, startingBusStop["GPS Location"] > 0.05):
+        gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
+        print(gpsBusStopEnd)
+
+        print(endingBusStop)
+        if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) < 0.10:
             toReturn["Routes"].append(
                 {
                     "Route":startingCloseBusStop[0],
@@ -101,7 +107,7 @@ class RoutingAlgo:
             indexOfBusStopStart = next(
                 (index for (index, d) in enumerate(self.parsedData[busesToTake[0]]) if d["Name"] == busStopStart), None)
             busPointToCheck = self.parsedData[busesToTake[0]][indexOfBusStopStart]["Closest Point"]
-            # print(self.parsedData[busesToTake[0]][indexOfBusStopStart])
+            print(self.parsedData[busesToTake[0]][indexOfBusStopStart])
             if transferObject is not None:
                 if transferObject["Type"] == "Walking":
                     busStopEnd = transferObject["Transfer Stop From"]
@@ -123,7 +129,7 @@ class RoutingAlgo:
             while True:
                 point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
                 if point == busPointToCheck:
-                    # print("MATCH")
+                    print("MATCH")
                     startRecording = True
                 if startRecording:
                     toReturn["Routes"][indexOfRouteObj]["Route"].append(point)
@@ -153,22 +159,22 @@ class RoutingAlgo:
                             busStopStart = transferObject["Transfer Stop"]
                     break
                 pointIterator += 1
-                # print(pointIterator)
+                print(pointIterator)
                 if pointIterator == len(self.mapBoxScrap[correspondingMapBoxKey]):
-                    # print("reset")
+                    print("reset")
                     pointIterator = 0
-        if self._calculate_relative_distance(endingLocation,
-                                             endingBusStop["GPS Location"] > 0.05):
+        if self._calculate_relative_distance(endingLocationCoords,
+                                             gpsBusStopEnd) > 0.10:
             toReturn["Routes"].append(
                 {
-                    "Route": endingBusStop[0],
+                    "Route": endingCloseBusStop[0],
                     "Type": "Walking",
-                    "Start": endingBusStop[1]["Name"],
+                    "Start": endingBusStop,
                     "End": endingLocation
                 }
             )
         returnRoutes = [toReturn]
-        # print(toReturn)
+        print(toReturn)
         return returnRoutes
 
     def _load_bus_stops(self) -> None:
@@ -322,6 +328,7 @@ def main():
     routes = RoutingAlgo()
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
+    # TESTING WALKING LIAO HONG GAN
     pp.pprint(routes.get_route("Kulai Terminal", "Senai Airport Terminal"))  # one of the furthest routes
 
     # pp.pprint(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
