@@ -2,6 +2,8 @@
 var map;
 // Marker overlay
 var marker;
+// Focused element
+var activeInput;
 // Overlay shown boolean
 var isHidden = false;
 // List of bus polylines
@@ -19,16 +21,16 @@ var busPolylines = {
 };
 // List of bus route colors
 var busRouteColors = {
-  'P101_1': '#FF0000',
-  'P102_1': '#00FF00',
-  'P102_2': '#0000FF',
-  'P106_1': '#0000FF',
-  'P202_1': '#0FF000',
-  'P211_1': '#000FF0',
-  'P211_2': '#000FF0',
-  'P411_1': '#F0000F',
-  'P411_2': '#F0000F',
-  'P403_1': '#000000',
+  'P101_1': '#FC2947',
+  'P102_1': '#03C988',
+  'P102_2': '#03C988',
+  'P106_1': '#820000',
+  'P202_1': '#F0997D',
+  'P211_1': '#B08BBB',
+  'P211_2': '#B08BBB',
+  'P411_1': '#5E8C88',
+  'P411_2': '#5E8C88',
+  'P403_1': '#674747',
 };
 // List of shown overlays
 var showOverlays = {
@@ -115,7 +117,7 @@ function overlayBusRoute(busNumber, direction, color, googleMap) {
         geodesic: true,
         strokeColor: color,
         strokeOpacity: 1.0,
-        strokeWeight: 3,
+        strokeWeight: 4,
       });
       const busPolyline = busPolylines[key];
       // Apply polyline overlay on google map
@@ -139,6 +141,20 @@ function placeMarker(location) {
       map: map
     });
   }
+
+  // Get latitude and longitude of the marker
+  var markerLat = location.lat();
+  var markerLng = location.lng();
+
+  // Update latitude and longitude to input fields
+  if (activeInput.id === "start-location" || activeInput.id === "end-location") {
+    activeInput.value = markerLat + "," + markerLng;
+  }
+}
+
+function setFocusedInput() {
+  // Set latest input field as the active element
+  activeInput = document.activeElement;
 }
 
 function getBusRoute(busNumber, direction) {
@@ -165,6 +181,7 @@ function toggleAllBusCheckbox(isSelected) {
   for (let i=0; i<busItems.length; i++) {
     const busCheckbox = busItems[i];
     const busItemValue = busCheckbox.name;
+    // Toggle all bus checkboxes
     handleBusCheckbox(busItemValue, isSelected);
   }
 }
@@ -231,7 +248,7 @@ function overlayShortestRoute(start, end) {
           geodesic: true,
           strokeColor: busRouteColors[busNumber],
           strokeOpacity: 1.0,
-          strokeWeight: 3,
+          strokeWeight: 4,
         });
         // Apply polyline overlay on google map
         busPolyline.setMap(map);
@@ -255,4 +272,8 @@ function getShortestRoute(start, end) {
     xhttp.open("GET", "/route/get/" + start + "/" + end, true);
     xhttp.send();
   });
+}
+
+function routeCallback(data) {
+  console.log(data);
 }

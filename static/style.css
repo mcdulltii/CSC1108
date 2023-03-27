@@ -31,5 +31,96 @@ body {
 }
 
 .dropdown-item {
+  text-align: center;
+  cursor: pointer;
+}
+
+.box {
+  float: left;
+  height: 20px;
+  width: 20px;
+  margin-top: 5px;
+  border: 1px solid black;
+  clear: both;
+}
+
+.box.P101_1 {
+  background-color: #FC2947
+}
+.box.P102_1, .box.P102_2 {
+  background-color: #03C988
+}
+.box.P106_1 {
+  background-color: #820000
+}
+.box.P202_1 {
+  background-color: #F0997D
+}
+.box.P211_1, .box.P211_2 {
+  background-color: #B08BBB
+}
+.box.P411_1, .box.P411_2 {
+  background-color: #5E8C88
+}
+.box.P403_1 {
+  background-color: #674747
+}
+
+.input-items {
+  vertical-align: top;
+}
+
+.input-origin-destination {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.input-container {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+#size-two-icons {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+
+#placeholder-padding {
+	padding-left:20px;
+}
+
+#search-btn-size {
+	width: 13px;
+	height: 13px;
+}
+
+input[type="text"] {
   width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #222;
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #1a73e8;
+  border: none;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #0d6efd;
 }
