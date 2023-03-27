@@ -38,21 +38,16 @@ def get_routes(bus_number, direction):
     return jsonify({key: [{'lat': i[1],'lng': i[0]} for i in routes[key]]})
 
 
-@app.route('/route/get/<start>/<end>')
-def get_shortest_route(start, end):
-    routing = RoutingAlgo()
-    try:
-        return jsonify(routing.get_route(start, end))
-    except:
-        return invalid_page('Failed to get shortest route')
-
-
 @app.route('/form-ori-dest', methods=["POST"])
 def get_ori_dest():
+    routing = RoutingAlgo()
     origin = request.form['origin']
     destination = request.form['destination']
     logger.info(f'{origin=}, {destination=}')
-    return jsonify({'Origin': origin, 'Destination': destination})
+    try:
+        return jsonify(routing.get_route(origin, destination))
+    except:
+        return invalid_page('Failed to get shortest route')
 
 
 @app.errorhandler(404)

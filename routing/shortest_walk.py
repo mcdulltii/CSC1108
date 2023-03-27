@@ -50,8 +50,8 @@ class shortest_walk:
 
     # locate nearest bus stop
     def get_walking_route(self,locationStart, locationEnd):
-        directions_result = self.gmaps.directions(locationStart, locationEnd)
-        route_coordinates = [(step['start_location']['lat'], step['start_location']['lng'])
+        directions_result = self.gmaps.directions(locationStart, locationEnd, mode="walking")
+        route_coordinates = [(step['start_location']['lng'], step['start_location']['lat'])
                              for step in directions_result[0]['legs'][0]['steps']]
         return route_coordinates
 
@@ -97,8 +97,8 @@ class shortest_walk:
                 closest_stop = nearby[keys]
                 
         if closest_stop is not None:
-            directions_result = self.gmaps.directions(location, closest_stop["GPS Location"])
-            route_coordinates = [(step['start_location']['lat'], step['start_location']['lng'])
+            directions_result = self.gmaps.directions(location, closest_stop["GPS Location"], mode="walking")
+            route_coordinates = [(step['start_location']['lng'], step['start_location']['lat'])
                                  for step in directions_result[0]['legs'][0]['steps']]
         else:
             route_coordinates = None
