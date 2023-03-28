@@ -124,3 +124,56 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background-color: rgb(145, 181, 213);
 }
+
+.routes-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.time-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.time {
+  margin-right: 10px;
+}
+
+.start-time, .end-time {
+  font-weight: 600;
+}
+
+.time-separator {
+  font-size: 18px;
+  margin: 0 10px;
+}
+
+.duration {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.details-btn {
+  background-color: #fff;
+  color: #4a67d1;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.details-btn:hover {
+  background-color: rgba(154, 174, 236, 0.13);
+  color: #0d2685;
+}
+
