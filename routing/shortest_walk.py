@@ -1,25 +1,14 @@
-
 import googlemaps
 
 from math import radians, cos, sin, asin, sqrt
 from routes_reader.routes_reader import RoutesReader
 
-# hardcoded origin location
-# origin_loc = (1.472841, 103.780508)
-
-# hardcoded bus stop location
-# bus_loc = (1.473219175868682, 103.77987903309756)
-
 
 class shortest_walk:
 
     def __init__(self, bus_stops):
-        # routes reader class
-        # read excel sheet to get bus stops
         # bus stop coordinates
-        # format:
-        # { {'P101': {'Name': 'Larkin Terminal ⊃ Johor Bahru City (loop service)', 'Coordinates': '41.40338, 2.17403'} }
-        # bus_stops = RoutesReader.read_excel('routeRecords.xlxs')
+        # format: { {'P101': {'Name': 'Larkin Terminal ⊃ Johor Bahru City (loop service)', 'Coordinates': '41.40338, 2.17403'} }
         self.list_of_bus_stops = bus_stops
 
     # googlemaps api key
@@ -58,6 +47,7 @@ class shortest_walk:
         google_return = self.gmaps.geocode(location_in_string)
         to_return = [google_return[0]['geometry']['location'] ['lat'], google_return[0]['geometry']['location'] ['lng']]
         return to_return
+
     # locate nearest bus stop
     def get_walking_route(self,locationStart, locationEnd):
         directions_result = self.gmaps.directions(locationStart, locationEnd)

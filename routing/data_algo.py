@@ -67,12 +67,17 @@ class RoutingAlgo:
 
         startingCloseBusStop = self.walkingRouteCalculator.find_nearby(startingLocationCoords)
         startingBusStop = startingCloseBusStop[1]["Name"]
-        print(startingBusStop)
+        gpsBusStopStart = startingCloseBusStop[1]["GPS Location"].split(", ")
+
+
 
         endingCloseBusStop = self.walkingRouteCalculator.find_nearby(endingLocationCoords)
         endingBusStop = endingCloseBusStop[1]["Name"]
+        gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
+        print(gpsBusStopEnd)
+
         print(endingBusStop)
-        if self._calculate_relative_distance(startingLocationCoords, startingBusStop["GPS Location"] > 0.05):
+        if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) < 0.10:
             toReturn["Routes"].append(
                 {
                     "Route":startingCloseBusStop[0],
@@ -158,13 +163,13 @@ class RoutingAlgo:
                 if pointIterator == len(self.mapBoxScrap[correspondingMapBoxKey]):
                     print("reset")
                     pointIterator = 0
-        if self._calculate_relative_distance(endingLocation,
-                                             endingBusStop["GPS Location"] > 0.05):
+        if self._calculate_relative_distance(endingLocationCoords,
+                                             gpsBusStopEnd) > 0.10:
             toReturn["Routes"].append(
                 {
-                    "Route": endingBusStop[0],
+                    "Route": endingCloseBusStop[0],
                     "Type": "Walking",
-                    "Start": endingBusStop[1]["Name"],
+                    "Start": endingBusStop,
                     "End": endingLocation
                 }
             )
