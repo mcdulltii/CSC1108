@@ -260,6 +260,12 @@ function routeCallback(routeInfo) {
       });
       // Apply polyline overlay on google map
       routePolyline.setMap(map);
+      // Add pin to transfers
+      new google.maps.Marker({
+        position: routePath[0],
+        icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+        map: map,
+      });
     });
 
     // Create routes-box and append to directions-panel
@@ -279,7 +285,7 @@ function routeCallback(routeInfo) {
     // Create start and end time spans and append to time-wrapper
     const startTime = document.createElement("span");
     startTime.classList.add("start-time");
-    // startTime.textContent = directions["StartTime"];
+    startTime.textContent = tConvert(shortestRoute["Time Start"]);
     timeWrapper.appendChild(startTime);
 
     const timeSeparator = document.createElement("span");
@@ -289,14 +295,20 @@ function routeCallback(routeInfo) {
 
     const endTime = document.createElement("span");
     endTime.classList.add("end-time");
-    // endTime.textContent = directions["EndTime"];
+    endTime.textContent = tConvert(shortestRoute["Time End"]);
     timeWrapper.appendChild(endTime);
 
     // Create duration span and append to time-wrapper
     const duration = document.createElement("span");
     duration.classList.add("duration");
-    // duration.textContent = directions["Duration"];
-    timeWrapper.appendChild(duration);
+    const routeDuration = toHoursAndMinutes(shortestRoute["Time Taken"]);
+    const durationText = [];
+    if (routeDuration["hours"] !== 0)
+      durationText.push(routeDuration["hours"] + "hr");
+    if (routeDuration["minutes"] !== 0)
+      durationText.push(routeDuration["minutes"] + "min");
+    duration.textContent = durationText.join(" ");
+    timeWrapperOuter.appendChild(duration);
 
     // Create details button and append to routes-box
     const detailsBtn = document.createElement("button");
@@ -331,4 +343,20 @@ function routeCallback(routeInfo) {
   })
 }
 
+function tConvert(time) {
+  // Check correct time format and split into components
+  time = time.toString().match (/^([01]\d|2[0-3])(:)([0-5]\d).*$/) || [time];
 
+  if (time.length > 1) { // If time format correct
+    time = time.slice(1);  // Remove full string match value
+    time[5] = +time[0] < 12 ? 'AM' : 'PM'; // Set AM/PM
+    time[0] = +time[0] % 12 || 12; // Adjust hours
+  }
+  return time.join(''); // return adjusted time or original string
+}
+
+function toHoursAndMinutes(totalMinutes) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = Math.round(totalMinutes % 60);
+  return { hours, minutes };
+}
