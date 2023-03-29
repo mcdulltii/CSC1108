@@ -1,11 +1,20 @@
 // Google map
 var map;
-// Marker overlay
-var marker;
 // Focused element
 var activeInput;
 // Overlay shown boolean
 var isHidden = false;
+// Map markers overlay
+var mk1;
+var mk2;
+// Geocoder variable
+var geocoder;
+// Search route polyline
+var routePolylines = [];
+// Search route markers
+var routeMarkers = [];
+// Latest route information
+var latestRouteInfo;
 // List of bus polylines
 var busPolylines = {
   'P101_1': null,
@@ -75,6 +84,11 @@ function initialize() {
   google.maps.event.addListener(map, 'click', function(event){
     placeMarker(event.latLng);
   });
+  // Initialize geocoder
+  geocoder = new google.maps.Geocoder;
+  // Clear input fields
+  document.getElementById("start-location").value = "";
+  document.getElementById("end-location").value = "";
 
   // Add bus-dropdown items event listeners
   var busItems = document.getElementsByClassName('bus-item');
@@ -133,25 +147,73 @@ function overlayBusRoute(busNumber, direction, color, googleMap) {
 }
 
 function placeMarker(location) {
-  if (marker) {
-    // Overlay marker at clicked position
-    marker.setPosition(location);
+  if (!activeInput) {
+    if (mk1) {
+      // Overlay marker at clicked position
+      mk1.setPosition(location);
+    } else {
+      // Initialize new marker
+      mk1 = new google.maps.Marker({
+        position: location,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+        },
+        map: map
+      });
+    }
   } else {
-    // Initialize new marker
-    marker = new google.maps.Marker({
-      position: location,
-      map: map
-    });
+    if (mk1 && activeInput.id === "start-location") {
+      // Overlay marker at clicked position
+      mk1.setPosition(location);
+    } else if (mk2 && activeInput.id === "end-location") {
+      // Overlay marker at clicked position
+      mk2.setPosition(location);
+    } else {
+      // Initialize new marker
+      if (activeInput.id === "end-location")
+        mk2 = new google.maps.Marker({
+          position: location,
+          map: map
+        });
+      else if (activeInput.id === "start-location")
+        mk1 = new google.maps.Marker({
+          position: location,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+          },
+          map: map
+        });
+    }
   }
 
   // Get latitude and longitude of the marker
-  var markerLat = location.lat();
-  var markerLng = location.lng();
+  var lat = location.lat();
+  var lng = location.lng();
 
   // Update latitude and longitude to input fields
-  if (activeInput.id === "start-location" || activeInput.id === "end-location") {
-    activeInput.value = markerLat + "," + markerLng;
-  }
+  if (activeInput)
+    if (activeInput.id === "start-location" || activeInput.id === "end-location") {
+      var latlng = {
+        lat: lat,
+        lng: lng
+      };
+      // Use geocode to reverse translate lat lng address
+      geocoder.geocode({
+        'location': latlng
+      }, function(results, status) {
+        if (status === 'OK') {
+          if (results[0]) {
+            activeInput.value = results[0].formatted_address;
+          } else {
+            activeInput.value = lat + "," + lng;
+          }
+        } else {
+          activeInput.value = lat + "," + lng;
+        }
+      });
+    }
 }
 
 function setFocusedInput() {
@@ -236,30 +298,165 @@ function showBusRoute(key, isShown) {
 }
 
 function routeCallback(routeInfo) {
-  // Retrieve routes taken
-  routeInfo.forEach(shortestRoute => {
-    // Iterate shortest routes
-    shortestRoute["Routes"].forEach((route, index) => {
-      var routeType = route["Type"];
-      routeType = busRouteNames[routeType];
-      var routePath = route["Route"];
-      // Connect paths if route type is walking
-      if (routeType === "Walking") {
-        if (index > 0)
-          routePath.unshift(shortestRoute["Routes"][index - 1]["Route"].slice(-1)[0]);
-        if (index < shortestRoute["Routes"].length - 1)
-          routePath.push(shortestRoute["Routes"][index + 1]["Route"][0]);
-      }
-      // Build shortest route polyline array
-      const routePolyline = new google.maps.Polyline({
-        path: routePath,
-        geodesic: true,
-        strokeColor: busRouteColors[routeType],
-        strokeOpacity: 1.0,
-        strokeWeight: 4,
+  if (routeInfo.hasOwnProperty("errorCode"))
+    alert("Failed to get route!");
+  else {
+    latestRouteInfo = routeInfo;
+    routeInfoIndex = 0;
+    const directionsPanel = document.getElementById("directions-panel");
+    // Retrieve routes taken
+    routeInfo.forEach(shortestRoute => {
+      // Create routes-box and append to directions-panel
+      const routesBox = document.createElement("div");
+      routesBox.classList.add("routes-box");
+      directionsPanel.innerHTML = "";
+      directionsPanel.appendChild(routesBox);
+
+      // Create time-wrapper and append to routes-box
+      const timeWrapperOuter = document.createElement("div");
+      timeWrapperOuter.classList.add("time-wrapper");
+      const timeWrapper = document.createElement("div");
+      timeWrapper.classList.add("time");
+      timeWrapperOuter.appendChild(timeWrapper);
+      routesBox.appendChild(timeWrapperOuter);
+
+      // Create start and end time spans and append to time-wrapper
+      const startTime = document.createElement("span");
+      startTime.classList.add("start-time");
+      startTime.textContent = tConvert(shortestRoute["Time Start"]);
+      timeWrapper.appendChild(startTime);
+
+      const timeSeparator = document.createElement("span");
+      timeSeparator.classList.add("time-separator");
+      timeSeparator.textContent = " - ";
+      timeWrapper.appendChild(timeSeparator);
+
+      const endTime = document.createElement("span");
+      endTime.classList.add("end-time");
+      endTime.textContent = tConvert(shortestRoute["Time End"]);
+      timeWrapper.appendChild(endTime);
+
+      // Create duration span and append to time-wrapper
+      const duration = document.createElement("span");
+      duration.classList.add("duration");
+      const routeDuration = toHoursAndMinutes(shortestRoute["Time Taken"]);
+      const durationText = [];
+      if (routeDuration["hours"] !== 0)
+        durationText.push(routeDuration["hours"] + "hr");
+      if (routeDuration["minutes"] !== 0)
+        durationText.push(routeDuration["minutes"] + "min");
+      duration.textContent = durationText.join(" ");
+      timeWrapperOuter.appendChild(duration);
+
+      // Create details button and append to routes-box
+      const detailsBtn = document.createElement("button");
+      detailsBtn.classList.add("details-btn");
+      detailsBtn.textContent = "Details";
+      detailsBtn.value = routeInfoIndex;
+      routesBox.appendChild(detailsBtn);
+
+      // Create selected-route div and append to directions-panel
+      const selectedRoute = document.createElement("div");
+      selectedRoute.classList.add("selected-route");
+      if (routeInfoIndex == 0)
+        selectedRoute.style.display = "block";
+      else
+        selectedRoute.style.display = "none";
+      directionsPanel.appendChild(selectedRoute);
+
+      // Add click event listener to details button
+      detailsBtn.addEventListener("click", (event) => {
+        // Hide all selected-route divs
+        const selectedRoutes = document.querySelectorAll(".selected-route");
+        selectedRoutes.forEach(selectedRoute => {
+          selectedRoute.style.display = "none";
+        });
+        // Show selected-route for this details button
+        showRouteDetails(selectedRoute, event.target.value);
       });
-      // Apply polyline overlay on google map
-      routePolyline.setMap(map);
+
+      routeInfoIndex++;
     });
-  })
+
+    // Visualize first route option
+    showRouteDetails(directionsPanel.children[1], 0);
+    drawShortestRoute(latestRouteInfo[0]);
+  }
+}
+
+function showRouteDetails(selectedRoute, routeIndex) {
+  selectedRoute.innerHTML = "";
+  const directionsList = document.createElement("ol");
+  selectedRoute.appendChild(directionsList);
+  latestRouteInfo[routeIndex]["Routes"].forEach(step => {
+    const directionStep = document.createElement("li");
+    directionStep.textContent = step["Type"] + ": " + step["Start"] + " => " + step["End"];
+    directionsList.appendChild(directionStep);
+  });
+  selectedRoute.style.display = "block";
+  drawShortestRoute(latestRouteInfo[routeIndex]);
+}
+
+function drawShortestRoute(shortestRoute) {
+  // Clear previous route polylines
+  if (routePolylines) {
+    routePolylines.forEach(routePolyline => {
+      routePolyline.setMap(null);
+    });
+  }
+  routePolylines = [];
+  // Clear previous pin markers
+  if (routeMarkers) {
+    routeMarkers.forEach(routeMarker => {
+      routeMarker.setMap(null);
+    })
+  }
+  routeMarkers = [];
+  shortestRoute["Routes"].forEach((route, index) => {
+    var routeType = route["Type"];
+    routeType = busRouteNames[routeType];
+    var routePath = route["Route"];
+    // Connect paths if route type is walking
+    if (routeType === "Walking") {
+      if (index > 0)
+        routePath.unshift(shortestRoute["Routes"][index - 1]["Route"].slice(-1)[0]);
+      if (index < shortestRoute["Routes"].length - 1)
+        routePath.push(shortestRoute["Routes"][index + 1]["Route"][0]);
+    }
+    // Build shortest route polyline array
+    const routePolyline = new google.maps.Polyline({
+      path: routePath,
+      geodesic: true,
+      strokeColor: busRouteColors[routeType],
+      strokeOpacity: 1.0,
+      strokeWeight: 4,
+    });
+    // Apply polyline overlay on google map
+    routePolyline.setMap(map);
+    routePolylines.push(routePolyline);
+    // Add pin to transfers
+    routeMarkers.push(new google.maps.Marker({
+      position: routePath[0],
+      icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+      map: map,
+    }));
+  });
+}
+
+function tConvert(time) {
+  // Check correct time format and split into components
+  time = time.toString().match (/^([01]\d|2[0-3])(:)([0-5]\d).*$/) || [time];
+
+  if (time.length > 1) { // If time format correct
+    time = time.slice(1);  // Remove full string match value
+    time[5] = +time[0] < 12 ? 'AM' : 'PM'; // Set AM/PM
+    time[0] = +time[0] % 12 || 12; // Adjust hours
+  }
+  return time.join(''); // return adjusted time or original string
+}
+
+function toHoursAndMinutes(totalMinutes) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = Math.round(totalMinutes % 60);
+  return { hours, minutes };
 }

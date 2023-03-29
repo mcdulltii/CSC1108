@@ -116,7 +116,7 @@ class RoutingAlgo:
             else:
                 busStopEnd = routeObject["Pathing"][-1]
             busStopEndInfo = self._find_bus_stop_information(busesToTake[0], busStopEnd)
-            print(busStopEndInfo)
+            # print(busStopEndInfo)
             busPointEnd = busStopEndInfo["Closest Point"]
 
             indexOf = list(self.parsedData.keys()).index(busesToTake[0])
@@ -125,9 +125,8 @@ class RoutingAlgo:
 
             indexOfRouteObj = next(
                 (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
-            toReturn["Routes"][indexOfRouteObj]["Starting"] = busStopStart["Name"]
-            toReturn["Routes"][indexOfRouteObj]["Ending"] = busStopEnd
-            toReturn["Routes"]
+            toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart["Name"]
+            toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
             startRecording = False
             while True:
                 point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
@@ -166,8 +165,8 @@ class RoutingAlgo:
                     pointIterator = 0
         if self._calculate_relative_distance(endingLocationCoords,
                                              gpsBusStopEnd) > 0.10:
-            endingCloseBusStop[0].insert(0, gpsBusStopEnd)
-            endingCloseBusStop[0].append(endingLocationCoords)
+            endingCloseBusStop[0].insert(0,list(map(float,gpsBusStopEnd[::-1])))
+            endingCloseBusStop[0].append(endingLocationCoords[::-1])
             toReturn["Routes"].append(
                 {
                     "Route": [{'lat': i[1], 'lng': i[0]} for i in endingCloseBusStop[0]],
@@ -373,7 +372,7 @@ def main():
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
     # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia","Jalan Stulang Laut, Johor Bahru,JHR,Malaysia"))  # one of the furthest routes
     # P403-loop -> P211-01 -> P101-loop -> P102-02 -> P102-01
-    pp.pprint(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
+    # pp.pprint(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
     # pp.pprint(routes.get_route("Taman Universiti Terminal", "Johor Islamic Complex")) #Single xfer
     # pp.pprint(routes.get_route("Hub PPR Sri Stulang", "AEON Tebrau City")) #Straight Route
     # pp.pprint(routes.get_route("81400 Senai, Johor, Malaysia", "No.4, Jalan Pendidikan, Taman Universiti, 81300 Johor Bahru, Johor, Malaysia"))
