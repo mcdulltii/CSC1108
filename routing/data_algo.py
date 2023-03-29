@@ -45,7 +45,7 @@ class RoutingAlgo:
         self._populate_routes_information()
         self.routeCalculator = Dijkstras(self.graphedData)
 
-    def get_route(self, startingLocation: str, endingLocation: str) -> list[dict[str, list[Any] | Any]]:
+    def get_route(self, startingLocation: str, endingLocation: str) -> List[Dict[str, List[Any]]]:
         '''
         {
             Starting Bus Stop: startBusStop,
@@ -62,25 +62,18 @@ class RoutingAlgo:
             "Routes": []
         }
 
-
-        print(endingLocationCoords)
-
         startingCloseBusStop = self.walkingRouteCalculator.find_nearby(startingLocationCoords)
         startingBusStop = startingCloseBusStop[1]["Name"]
         gpsBusStopStart = startingCloseBusStop[1]["GPS Location"].split(", ")
 
-
-
         endingCloseBusStop = self.walkingRouteCalculator.find_nearby(endingLocationCoords)
         endingBusStop = endingCloseBusStop[1]["Name"]
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
-        print(gpsBusStopEnd)
 
-        print(endingBusStop)
         if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) < 0.10:
             toReturn["Routes"].append(
                 {
-                    "Route":startingCloseBusStop[0],
+                    "Route": [{'lat': i[1],'lng': i[0]} for i in startingCloseBusStop[0]],
                     "Type": "Walking",
                     "Start": startingLocation,
                     "End": startingBusStop
@@ -107,7 +100,7 @@ class RoutingAlgo:
             indexOfBusStopStart = next(
                 (index for (index, d) in enumerate(self.parsedData[busesToTake[0]]) if d["Name"] == busStopStart), None)
             busPointToCheck = self.parsedData[busesToTake[0]][indexOfBusStopStart]["Closest Point"]
-            print(self.parsedData[busesToTake[0]][indexOfBusStopStart])
+
             if transferObject is not None:
                 if transferObject["Type"] == "Walking":
                     busStopEnd = transferObject["Transfer Stop From"]
@@ -129,28 +122,27 @@ class RoutingAlgo:
             while True:
                 point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
                 if point == busPointToCheck:
-                    print("MATCH")
+                    # print("MATCH")
                     startRecording = True
                 if startRecording:
-                    toReturn["Routes"][indexOfRouteObj]["Route"].append(point)
+                    toReturn["Routes"][indexOfRouteObj]["Route"].append({'lat': point[1], 'lng': point[0]})
                 if point == busPointEnd and startRecording:
                     if transferObject is not None:
                         if transferObject["Type"] == "Walking":
-                            busStopStart = transferObject["Transfer Stop To"]
-                            nextBus = routeObject["Buses To Return"][
-                                routeObject["Buses To Return"].index(busesToTake) + 1]
-
+                            busStopStart = transferObject["Transfer Stop To"] #to bus stop so coordinates end
+                            nextBus = routeObject["Buses To Return"][routeObject["Buses To Return"].index(busesToTake) + 1]
                             indexOfBusStopWalkingEnd = next(
                                 (index for (index, d) in enumerate(self.parsedData[nextBus[0]]) if
                                  d["Name"] == busStopStart), None)
                             indexOfBusStopWalkingStart = next(
                                 (index for (index, d) in enumerate(self.parsedData[busesToTake[0]]) if
                                  d["Name"] == transferObject["Transfer Stop From"]), None)
-                            coordinatesEnd = self.parsedData[busesToTake[0]][indexOfBusStopWalkingEnd]["GPS Location"]
-                            coordinatesStart = self.parsedData[nextBus[0]][indexOfBusStopWalkingStart]["GPS Location"]
+                            coordinatesEnd = self.parsedData[nextBus[0]][indexOfBusStopWalkingEnd]["GPS Location"]
+                            coordinatesStart = self.parsedData[busesToTake[0]][indexOfBusStopWalkingStart]["GPS Location"]
+                            # print(self.parsedData[busesToTake[0]][indexOfBusStopWalkingEnd])
+                            # print(self.parsedData[nextBus[0]][indexOfBusStopWalkingStart])
                             toReturn["Routes"].append({
-                                "Route": self.walkingRouteCalculator.get_walking_route(coordinatesStart,
-                                                                                       coordinatesEnd),
+                                "Route": [{'lat': i[1],'lng': i[0]} for i in self.walkingRouteCalculator.get_walking_route(coordinatesStart, coordinatesEnd)],
                                 "Type": "Walking",
                                 "Start": transferObject["Transfer Stop From"],
                                 "End": busStopStart
@@ -159,22 +151,22 @@ class RoutingAlgo:
                             busStopStart = transferObject["Transfer Stop"]
                     break
                 pointIterator += 1
-                print(pointIterator)
+
                 if pointIterator == len(self.mapBoxScrap[correspondingMapBoxKey]):
-                    print("reset")
+                    # print("reset")
                     pointIterator = 0
         if self._calculate_relative_distance(endingLocationCoords,
                                              gpsBusStopEnd) > 0.10:
             toReturn["Routes"].append(
                 {
-                    "Route": endingCloseBusStop[0],
+                    "Route": [{'lat': i[1],'lng': i[0]} for i in endingCloseBusStop[0]],
                     "Type": "Walking",
                     "Start": endingBusStop,
                     "End": endingLocation
                 }
             )
         returnRoutes = [toReturn]
-        print(toReturn)
+        # print(toReturn)
         return returnRoutes
 
     def _load_bus_stops(self) -> None:
@@ -328,7 +320,6 @@ def main():
     routes = RoutingAlgo()
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
-    # TESTING WALKING LIAO HONG GAN
     pp.pprint(routes.get_route("Kulai Terminal", "Senai Airport Terminal"))  # one of the furthest routes
 
     # pp.pprint(routes.get_route("Majlis Bandaraya Johor Bahru", "AEON Tebrau City")) #example 2
