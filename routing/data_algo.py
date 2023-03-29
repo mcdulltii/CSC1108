@@ -111,7 +111,7 @@ class RoutingAlgo:
             else:
                 busStopEnd = routeObject["Pathing"][-1]
             busStopEndInfo = self._find_bus_stop_information(busesToTake[0], busStopEnd)
-            print(busStopEndInfo)
+            # print(busStopEndInfo)
             busPointEnd = busStopEndInfo["Closest Point"]
 
             indexOf = list(self.parsedData.keys()).index(busesToTake[0])
