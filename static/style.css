@@ -156,6 +156,18 @@ button[type="submit"]:hover {
   margin: 0 10px;
 }
 
+#directions-panel {
+  height: 46em;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+
+.selected-route {
+  max-height: 200px;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+
 .duration {
   font-size: 16px;
   font-weight: 600;

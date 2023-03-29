@@ -120,8 +120,8 @@ class RoutingAlgo:
             pointIterator = 0
             indexOfRouteObj = next(
                 (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
-            toReturn["Routes"][indexOfRouteObj]["Starting"] = busStopStart
-            toReturn["Routes"][indexOfRouteObj]["Ending"] = busStopEnd
+            toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart
+            toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
             startRecording = False
             while True:
                 point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]

@@ -260,73 +260,73 @@ function routeCallback(routeInfo) {
       });
       // Apply polyline overlay on google map
       routePolyline.setMap(map);
+    });
 
-      // // Get directions for this route
-      // const directions = route["Directions"];
-      //
-      // // Create routes-box and append to directions-panel
-      // const routesBox = document.createElement("div");
-      // routesBox.classList.add("routes-box");
-      // const directionsPanel = document.getElementById("directions-panel");
-      // directionsPanel.appendChild(routesBox);
-      //
-      // // Create time-wrapper and append to routes-box
-      // const timeWrapper = document.createElement("div");
-      // timeWrapper.classList.add("time-wrapper");
-      // routesBox.appendChild(timeWrapper);
-      //
-      // // Create start and end time spans and append to time-wrapper
-      // const startTime = document.createElement("span");
-      // startTime.classList.add("start-time");
-      // startTime.textContent = directions["StartTime"];
-      // timeWrapper.appendChild(startTime);
-      //
-      // const timeSeparator = document.createElement("span");
-      // timeSeparator.classList.add("time-separator");
-      // timeSeparator.textContent = " - ";
-      // timeWrapper.appendChild(timeSeparator);
-      //
-      // const endTime = document.createElement("span");
-      // endTime.classList.add("end-time");
-      // endTime.textContent = directions["EndTime"];
-      // timeWrapper.appendChild(endTime);
-      //
-      // // Create duration span and append to time-wrapper
-      // const duration = document.createElement("span");
-      // duration.classList.add("duration");
-      // duration.textContent = directions["Duration"];
-      // timeWrapper.appendChild(duration);
-      //
-      // // Create details button and append to routes-box
-      // const detailsBtn = document.createElement("button");
-      // detailsBtn.classList.add("details-btn");
-      // detailsBtn.textContent = "Details";
-      // routesBox.appendChild(detailsBtn);
-      //
-      // // Create selected-route div and append to directions-panel
-      // const selectedRoute = document.createElement("div");
-      // selectedRoute.classList.add("selected-route");
-      // selectedRoute.style.display = "none";
-      // directionsPanel.appendChild(selectedRoute);
-      //
-      // // Add click event listener to details button
-      // detailsBtn.addEventListener("click", () => {
-      //   // Hide all selected-route divs
-      //   const selectedRoutes = document.querySelectorAll(".selected-route");
-      //   selectedRoutes.forEach(selectedRoute => {
-      //     selectedRoute.style.display = "none";
-      //   });
-      //   // Show selected-route for this details button
-      //   selectedRoute.innerHTML = "";
-      //   const directionsList = document.createElement("ol");
-      //   selectedRoute.appendChild(directionsList);
-      //   directions["Steps"].forEach(step => {
-      //     const directionStep = document.createElement("li");
-      //     directionStep.textContent = step;
-      //     directionsList.appendChild(directionStep);
-      //   });
-      //   selectedRoute.style.display = "block";
-      // });
+    // Create routes-box and append to directions-panel
+    const routesBox = document.createElement("div");
+    routesBox.classList.add("routes-box");
+    const directionsPanel = document.getElementById("directions-panel");
+    directionsPanel.appendChild(routesBox);
+
+    // Create time-wrapper and append to routes-box
+    const timeWrapperOuter = document.createElement("div");
+    timeWrapperOuter.classList.add("time-wrapper");
+    const timeWrapper = document.createElement("div");
+    timeWrapper.classList.add("time");
+    timeWrapperOuter.appendChild(timeWrapper);
+    routesBox.appendChild(timeWrapperOuter);
+
+    // Create start and end time spans and append to time-wrapper
+    const startTime = document.createElement("span");
+    startTime.classList.add("start-time");
+    // startTime.textContent = directions["StartTime"];
+    timeWrapper.appendChild(startTime);
+
+    const timeSeparator = document.createElement("span");
+    timeSeparator.classList.add("time-separator");
+    timeSeparator.textContent = " - ";
+    timeWrapper.appendChild(timeSeparator);
+
+    const endTime = document.createElement("span");
+    endTime.classList.add("end-time");
+    // endTime.textContent = directions["EndTime"];
+    timeWrapper.appendChild(endTime);
+
+    // Create duration span and append to time-wrapper
+    const duration = document.createElement("span");
+    duration.classList.add("duration");
+    // duration.textContent = directions["Duration"];
+    timeWrapper.appendChild(duration);
+
+    // Create details button and append to routes-box
+    const detailsBtn = document.createElement("button");
+    detailsBtn.classList.add("details-btn");
+    detailsBtn.textContent = "Details";
+    routesBox.appendChild(detailsBtn);
+
+    // Create selected-route div and append to directions-panel
+    const selectedRoute = document.createElement("div");
+    selectedRoute.classList.add("selected-route");
+    selectedRoute.style.display = "none";
+    directionsPanel.appendChild(selectedRoute);
+
+    // Add click event listener to details button
+    detailsBtn.addEventListener("click", () => {
+      // Hide all selected-route divs
+      const selectedRoutes = document.querySelectorAll(".selected-route");
+      selectedRoutes.forEach(selectedRoute => {
+        selectedRoute.style.display = "none";
+      });
+      // Show selected-route for this details button
+      selectedRoute.innerHTML = "";
+      const directionsList = document.createElement("ol");
+      selectedRoute.appendChild(directionsList);
+      shortestRoute["Routes"].forEach(step => {
+        const directionStep = document.createElement("li");
+        directionStep.textContent = step["Start"] + " => " + step["End"];
+        directionsList.appendChild(directionStep);
+      });
+      selectedRoute.style.display = "block";
     });
   })
 }
