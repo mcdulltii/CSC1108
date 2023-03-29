@@ -44,7 +44,10 @@ class shortest_walk:
         return dist
 
     def string_to_coordinate(self, location_in_string):
+        print(location_in_string)
         google_return = self.gmaps.geocode(location_in_string)
+        print(google_return)
+
         to_return = [google_return[0]['geometry']['location'] ['lat'], google_return[0]['geometry']['location'] ['lng']]
         return to_return
 
@@ -72,8 +75,10 @@ class shortest_walk:
 
                 coord_lat = float(coords[0])
                 coord_lon = float(coords[1])
-
+                print(location)
+                print(coords)
                 distance = self.haversine_distance(user_lat, user_lon, coord_lat, coord_lon)
+                print(distance)
                 if distance <= max_distance:
                     if key in nearby.keys():
 
@@ -97,6 +102,7 @@ class shortest_walk:
                 closest_stop = nearby[keys]
                 
         if closest_stop is not None:
+            print("HA FOUND CLOSE")
             directions_result = self.gmaps.directions(location, closest_stop["GPS Location"], mode="walking")
             route_coordinates = [(step['start_location']['lng'], step['start_location']['lat'])
                                  for step in directions_result[0]['legs'][0]['steps']]
