@@ -45,7 +45,6 @@ class RoutingAlgo:
 
         self._populate_routes_information()
         self.routeCalculator = Dijkstras(self.graphedData)
-
     def get_route(self, startingLocation: str, endingLocation: str) -> List[Dict[str, List[Any]]]:
         '''
         {
@@ -71,7 +70,7 @@ class RoutingAlgo:
         endingBusStop = endingCloseBusStop[1]["Name"]
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
 
-        if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) < 0.10:
+        if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) > 0.10:
             toReturn["Routes"].append(
                 {
                     "Route": [{'lat': i[1],'lng': i[0]} for i in startingCloseBusStop[0]],
@@ -158,7 +157,7 @@ class RoutingAlgo:
                     # print("reset")
                     pointIterator = 0
         if self._calculate_relative_distance(endingLocationCoords,
-                                             gpsBusStopEnd) > 0.00:
+                                             gpsBusStopEnd) > 0.10:
             endingCloseBusStop[0].insert(0,gpsBusStopEnd)
             endingCloseBusStop[0].append(endingLocationCoords)
             toReturn["Routes"].append(
