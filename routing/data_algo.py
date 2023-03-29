@@ -45,6 +45,7 @@ class RoutingAlgo:
 
         self._populate_routes_information()
         self.routeCalculator = Dijkstras(self.graphedData)
+
     def get_route(self, startingLocation: str, endingLocation: str) -> List[Dict[str, List[Any]]]:
         '''
         {
@@ -110,7 +111,7 @@ class RoutingAlgo:
             else:
                 busStopEnd = routeObject["Pathing"][-1]
             busStopEndInfo = self._find_bus_stop_information(busesToTake[0], busStopEnd)
-            print(busStopEndInfo)
+            # print(busStopEndInfo)
             busPointEnd = busStopEndInfo["Closest Point"]
 
             indexOf = list(self.parsedData.keys()).index(busesToTake[0])
@@ -119,9 +120,8 @@ class RoutingAlgo:
 
             indexOfRouteObj = next(
                 (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
-            toReturn["Routes"][indexOfRouteObj]["Starting"] = busStopStart["Name"]
-            toReturn["Routes"][indexOfRouteObj]["Ending"] = busStopEnd
-            toReturn["Routes"]
+            toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart["Name"]
+            toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
             startRecording = False
             while True:
                 point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
@@ -158,8 +158,8 @@ class RoutingAlgo:
                     pointIterator = 0
         if self._calculate_relative_distance(endingLocationCoords,
                                              gpsBusStopEnd) > 0.10:
-            endingCloseBusStop[0].insert(0,gpsBusStopEnd)
-            endingCloseBusStop[0].append(endingLocationCoords)
+            endingCloseBusStop[0].insert(0,list(map(float,gpsBusStopEnd[::-1])))
+            endingCloseBusStop[0].append(endingLocationCoords[::-1])
             toReturn["Routes"].append(
                 {
                     "Route": [{'lat': i[1],'lng': i[0]} for i in endingCloseBusStop[0]],
