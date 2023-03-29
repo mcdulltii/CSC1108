@@ -120,7 +120,7 @@ class RoutingAlgo:
 
             indexOfRouteObj = next(
                 (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
-            toReturn["Routes"][indexOfRouteObj]["Starting"] = busStopStart
+            toReturn["Routes"][indexOfRouteObj]["Starting"] = busStopStart["Name"]
             toReturn["Routes"][indexOfRouteObj]["Ending"] = busStopEnd
             toReturn["Routes"]
             startRecording = False
