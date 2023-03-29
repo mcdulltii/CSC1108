@@ -26,7 +26,8 @@ class Dijkstras:
                 for i in range(3, len(self.graph[v])):
                     # list of verticles connected to v
                     if self.graph[v][i]["Name"] in q:
-                        alt = self.distance[v] + self.graph[v][i]["Distance Away"]
+                        alt = self.distance[v] + self.graph[v][i]["Time Taken"]
+                        #check xfer here
                         if alt < self.distance[self.graph[v][i]["Name"]]:
                             self.distance[self.graph[v][i]["Name"]] = alt
                             self.prev[self.graph[v][i]["Name"]] = v
@@ -45,7 +46,7 @@ class Dijkstras:
             currentBusStop = nextBusStop
             nextBusStop = self.prev[currentBusStop]
             for closeBusStop in self.graph[currentBusStop][2]["Stops Nearby"]:
-                if self.distance[closeBusStop]<self.distance[currentBusStop] and closeBusStop != nextBusStop:
+                if self.distance[closeBusStop] <self.distance[currentBusStop] and closeBusStop != nextBusStop:
                     nextBusStop = closeBusStop
                     walkingTransfer = True
             if busTaking is None:
