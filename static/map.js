@@ -390,7 +390,7 @@ function showRouteDetails(selectedRoute, routeIndex) {
   selectedRoute.appendChild(directionsList);
   latestRouteInfo[routeIndex]["Routes"].forEach(step => {
     const directionStep = document.createElement("li");
-    directionStep.textContent = step["Start"] + " => " + step["End"];
+    directionStep.textContent = step["Type"] + ": " + step["Start"] + " => " + step["End"];
     directionsList.appendChild(directionStep);
   });
   selectedRoute.style.display = "block";
