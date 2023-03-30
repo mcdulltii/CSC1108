@@ -82,7 +82,7 @@ class RoutingAlgo:
         if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) > 0.10:
             toReturn["Routes"].append(
                 {
-                    "Route": [{'lat': i[1], 'lng': i[0]} for i in startingCloseBusStop[0]],
+                    "Route": [{'lat': i[0], 'lng': i[1]} for i in startingCloseBusStop[0]],
                     "Type": "Walking",
                     "Start": startingLocation,
                     "End": startingBusStop,
@@ -132,12 +132,12 @@ class RoutingAlgo:
                         minutes=transferObject["Time Taken"])).strftime("%H%M%S")
                     timeToAdd += transferObject["Time Taken"]
             else:
-                print(timeStart)
-                print(timeToAdd)
-                print(timeTravelling)
+                # print(timeStart)
+                # print(timeToAdd)
+                # print(timeTravelling)
                 timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
                         minutes=(timeTravelling - timeToAdd))).strftime("%H%M%S")
-                print("Last" + timeStart)
+                # print("Last" + timeStart)
                 busStopEnd = routeObject["Pathing"][-1]
             busStopEndInfo = self._find_bus_stop_information(busesToTake[0], busStopEnd)
             # print(busStopEndInfo)
@@ -174,7 +174,7 @@ class RoutingAlgo:
                             returnWalkingRouteCalc = self.walkingRouteCalculator.get_walking_route(coordinatesStart,
                                                                           coordinatesEnd)
                             toReturn["Routes"].append({
-                                "Route": [{'lat': i[1], 'lng': i[0]} for i in
+                                "Route": [{'lat': i[0], 'lng': i[1]} for i in
                                           returnWalkingRouteCalc[0]],
                                 "Type": "Walking",
                                 "Start": transferObject["Transfer Stop From"],
@@ -201,11 +201,11 @@ class RoutingAlgo:
                     pointIterator = 0
         if self._calculate_relative_distance(endingLocationCoords,
                                              gpsBusStopEnd) > 0.10:
-            endingCloseBusStop[0].insert(0, list(map(float, gpsBusStopEnd[::-1])))
-            endingCloseBusStop[0].append(endingLocationCoords[::-1])
+            endingCloseBusStop[0].insert(0, list(map(float, gpsBusStopEnd)))
+            endingCloseBusStop[0].append(endingLocationCoords)
             toReturn["Routes"].append(
                 {
-                    "Route": [{'lat': i[1], 'lng': i[0]} for i in endingCloseBusStop[0]],
+                    "Route": [{'lat': i[0], 'lng': i[1]} for i in endingCloseBusStop[0]],
                     "Type": "Walking",
                     "Start Arrival Time": timeStart,
                     "Start": endingBusStop,
