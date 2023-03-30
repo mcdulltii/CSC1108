@@ -44,7 +44,6 @@ class RoutingAlgo:
             self.mapBoxScrap = pickle.load(f)
         with open(frequency_path, 'rb') as f:
             self.frequencyData = pickle.load(f)
-        print(self.frequencyData)
         self._load_bus_stops()
         self.walkingRouteCalculator = shortest_walk(self.parsedData)
 
@@ -65,10 +64,8 @@ class RoutingAlgo:
             "Routes": []
         }
         # GET COORDINATES FROM STRING GEOCODING
-        print(startingLocation)
         startingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(startingLocation)
         endingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(endingLocation)
-        print(startingLocationCoords)
 
         startingCloseBusStop = self.walkingRouteCalculator.find_nearby(startingLocationCoords)
         startingBusStop = startingCloseBusStop[1]["Name"]
@@ -77,6 +74,8 @@ class RoutingAlgo:
         endingCloseBusStop = self.walkingRouteCalculator.find_nearby(endingLocationCoords)
         endingBusStop = endingCloseBusStop[1]["Name"]
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
+        timeStart = "090512"
+        timeToAdd = 0
 
         if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) > 0.10:
             toReturn["Routes"].append(
@@ -84,18 +83,26 @@ class RoutingAlgo:
                     "Route": [{'lat': i[1], 'lng': i[0]} for i in startingCloseBusStop[0]],
                     "Type": "Walking",
                     "Start": startingLocation,
-                    "End": startingBusStop
+                    "End": startingBusStop,
+                    "Start Arrival Time": timeStart,
+                    "Distance Travelled": startingCloseBusStop[2]
                 }
             )
-
         routeObject = self.routeCalculator.calculate_route(startingBusStop, endingBusStop)
 
+        print("LOG")
+        print(startingCloseBusStop)
+        timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(minutes=startingCloseBusStop[3])).strftime("%H%M%S")
+        print(timeStart)
+        timeTravelling = routeObject["Distance"]
+
+        timeToAdd += startingCloseBusStop[3]
+        timeTravelling += startingCloseBusStop[3]
+        toReturn["Routes"][0]["End Arrival Time"] = timeStart
         # print("Walking Route to " + startingBusStop + ":" + str(startingCloseBusStop[0]))
-        timeStart = "090512"
         busStopStart = routeObject["Pathing"][0]
-        toReturn["Time Taken"] = routeObject["Distance"]
+
         toReturn["Time Start"] = timeStart
-        timeToAdd = timedelta(minutes=routeObject["Distance"])
         # toReturn["Time End"] = (datetime.strptime(timenow, '%H%M%S' + timeToAdd).strftime("%H:%M:%S")
         transfers = deque()
         for transfer in routeObject["Transfers"]:
@@ -120,13 +127,20 @@ class RoutingAlgo:
                     busStopEnd = transferObject["Transfer Stop From"]
                     timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
                         minutes=transferObject["Time Taken for Bus"])).strftime("%H%M%S")
+                    timeToAdd += transferObject["Time Taken for Bus"]
 
                 else:
                     busStopEnd = transferObject["Transfer Stop"]
                     timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
                         minutes=transferObject["Time Taken"])).strftime("%H%M%S")
-
+                    timeToAdd += transferObject["Time Taken"]
             else:
+                print(timeStart)
+                print(timeToAdd)
+                print(timeTravelling)
+                timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
+                        minutes=(timeTravelling - timeToAdd))).strftime("%H%M%S")
+                print("Last" + timeStart)
                 busStopEnd = routeObject["Pathing"][-1]
             busStopEndInfo = self._find_bus_stop_information(busesToTake[0], busStopEnd)
             # print(busStopEndInfo)
@@ -158,20 +172,27 @@ class RoutingAlgo:
                             busInformationForFrom = self._find_bus_stop_information(busesToTake[0], transferObject[
                                 "Transfer Stop From"])
                             busInformationForTo = self._find_bus_stop_information(nextBus[0], busStopStart)
-                            coordinatesStart = busInformationForFrom["GPS Location"]
-                            coordinatesEnd = busInformationForTo["GPS Location"]
+                            coordinatesStart = [float(x) for x in busInformationForFrom["GPS Location"].split(", ")]
+                            coordinatesEnd = [float(x) for x in busInformationForTo["GPS Location"].split(", ")]
+                            returnWalkingRouteCalc = self.walkingRouteCalculator.get_walking_route(coordinatesStart,
+                                                                          coordinatesEnd)
                             toReturn["Routes"].append({
                                 "Route": [{'lat': i[1], 'lng': i[0]} for i in
-                                          self.walkingRouteCalculator.get_walking_route(coordinatesStart,
-                                                                                        coordinatesEnd)],
+                                          returnWalkingRouteCalc[0]],
                                 "Type": "Walking",
                                 "Start": transferObject["Transfer Stop From"],
                                 "End": busStopStart,
-                                "Time Taken": transferObject["Time Taken for Walk"],
-                                "Your Arrival Time": timeStart
+                                "Time Taken": returnWalkingRouteCalc[2],
+                                "Start Arrival Time": timeStart,
+                                "Distance Traveleled": returnWalkingRouteCalc[1]
                             })
+                            timeToAdd += returnWalkingRouteCalc[2]
+                            timeTravelling += returnWalkingRouteCalc[2]
+
                             timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
-                                minutes=transferObject["Time Taken for Walk"])).strftime("%H%M%S")
+                                minutes=returnWalkingRouteCalc[2])).strftime("%H%M%S")
+                            toReturn["Routes"][indexOfRouteObj+1]["End Arrival Time"] = timeStart
+
 
                         else:
                             busStopStart = transferObject["Transfer Stop"]
@@ -189,12 +210,20 @@ class RoutingAlgo:
                 {
                     "Route": [{'lat': i[1], 'lng': i[0]} for i in endingCloseBusStop[0]],
                     "Type": "Walking",
+                    "Start Arrival Time": timeStart,
                     "Start": endingBusStop,
-                    "End": endingLocation
+                    "End": endingLocation,
+                    "Distance Travelled": endingCloseBusStop[2]
                 }
             )
+            timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
+                                minutes=endingCloseBusStop[3])).strftime("%H%M%S")
+            toReturn["Routes"][-1]["End Arrival Time"] = timeStart
+            toReturn["Time End"] = timeStart
+            timeConvertedEnd = datetime.strptime(toReturn["Time End"], "%H%M%S")
+            timeConvertedStart = datetime.strptime(toReturn["Time Start"], "%H%M%S")
+            toReturn["Time Taken"] = ((timeConvertedEnd - timeConvertedStart).total_seconds())/60
         returnRoutes = [toReturn]
-        # print(toReturn)
         return returnRoutes
 
     def _load_bus_stops(self) -> None:
@@ -220,7 +249,6 @@ class RoutingAlgo:
             busServiceForRoute = list(self.mapBoxScrap.keys())[i]
             self._calculate_distance(busServiceForRoute, key)
             self._get_arrival_time(i, key)
-            print(self.parsedData)
 
     def _populate_routes_information(self) -> None:
         for stopName in self.graphedData.keys():
@@ -347,15 +375,11 @@ class RoutingAlgo:
                     self.parsedData[key][dataIndex]["Time Of Arrival"].append((prevTime + timeToAdd).strftime("%H%M%S"))
 
     def _find_nearest_arrival_time(self, bus, stopName, timeToCompare):
-        print("Test" + timeToCompare)
-        print(bus)
-        print(stopName)
         busStopInfo = self._find_bus_stop_information(bus, stopName)
         timeToCompare = datetime.strptime(timeToCompare, "%H%M%S")
         timeToReturn = None
         differenceInTime = 500000000
         for index, time in enumerate(busStopInfo["Time Of Arrival"]):
-            print(time)
             timeConverted = datetime.strptime(time, "%H%M%S")
             differenceInSeconds = (timeConverted - timeToCompare).total_seconds()
             if differenceInTime > differenceInSeconds >= 0:
@@ -404,9 +428,9 @@ def main():
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
     # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia","Jalan Stulang Laut, Johor Bahru,JHR,Malaysia"))  # one of the furthest routes
     # P403-loop -> P211-01 -> P101-loop -> P102-02 -> P102-01
-    pp.pprint(routes.get_route("Kulai Terminal", "Senai Airport Terminal")) #example 2
+    pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia", "Jalan Stulang Baru, Johor Bahru,JHR,Malaysia")) #example 2
     # pp.pprint(routes.get_route("Taman Universiti", "Johor Islamic Complex")) #Single xfer
-    # pp.pprint(routes.get_route("Hub PPR Sri Stulang", "AEON Tebrau City")) #Straight Route
+    # pp.pprint(routes.get_route("Hub PPR Sri Stulang"tr, "AEON Tebrau City")) #Straight Route
     # pp.pprint(routes.get_route("81400 Senai, Johor, Malaysia", "No.4, Jalan Pendidikan, Taman Universiti, 81300 Johor Bahru, Johor, Malaysia"))
 
 
