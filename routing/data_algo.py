@@ -401,6 +401,10 @@ class RoutingAlgo:
         busStopToReturn = self.parsedData[busServiceForRoute][indexOfBusStop]
         return busStopToReturn
 
+    def _get_closest_restaurants(self, location):
+        return self.walkingRouteCalculator.find_nearest_restaurants(location)
+
+
     @staticmethod
     def _calculate_relative_distance(coordinate1, coordinate2) -> float:
         R = 6373.0  # earth

@@ -26,16 +26,14 @@ class shortest_walk:
         toReturn = []
         locationCheck = self.string_to_coordinate(location)
         formattedLatLong = {"lat": locationCheck[0], "lng": locationCheck[1]}
-        results = self.gmaps.places("Restaurant", radius="1000", location=formattedLatLong)["results"]
+        results = self.gmaps.places("Restaurant", radius="1250", location=formattedLatLong)["results"]
         for result in results:
-            print(result)
             toReturn.append({
                 "Name": result["name"],
                 "Location": result["formatted_address"],
-                "Coordinates": result["location"]
+                "Coordinates": result["geometry"]["location"]
             })
-        print()
-
+        return toReturn
     # haversine formula (kilometers): calculates distance between 2 points on a sphere, given longitude and latitude
     # coordinates: 1 = user location, 2 = destination location
     def haversine_distance(self, lat1, lon1, lat2, lon2):
