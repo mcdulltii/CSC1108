@@ -49,11 +49,17 @@ class shortest_walk:
         return to_return
 
     # locate nearest bus stop
-    def get_walking_route(self,locationStart, locationEnd):
+    def get_walking_route(self, locationStart, locationEnd):
+
         directions_result = self.gmaps.directions(locationStart, locationEnd, mode="walking")
         route_coordinates = [(step['start_location']['lng'], step['start_location']['lat'])
                              for step in directions_result[0]['legs'][0]['steps']]
-        return route_coordinates
+        locationStart = (locationStart[0], locationStart[1])
+        locationEnd = (locationEnd[0], locationEnd[1])
+
+        route_distance_matrix = self.gmaps.distance_matrix(locationStart, locationEnd, mode='walking')['rows'][0]['elements'][0]
+        print(route_distance_matrix)
+        return route_coordinates, route_distance_matrix["distance"]["value"]/1000, route_distance_matrix["duration"]["value"]/60
 
     def find_nearby(self, location):
         # set the search radius
@@ -72,7 +78,6 @@ class shortest_walk:
 
                 coord_lat = float(coords[0])
                 coord_lon = float(coords[1])
-
                 distance = self.haversine_distance(user_lat, user_lon, coord_lat, coord_lon)
                 if distance <= max_distance:
                     if key in nearby.keys():
@@ -97,10 +102,13 @@ class shortest_walk:
                 closest_stop = nearby[keys]
                 
         if closest_stop is not None:
-            directions_result = self.gmaps.directions(location, closest_stop["GPS Location"], mode="walking")
-            route_coordinates = [(step['start_location']['lng'], step['start_location']['lat'])
-                                 for step in directions_result[0]['legs'][0]['steps']]
+            routeReturn = self.get_walking_route(location, [float(x) for x in closest_stop["GPS Location"].split(", ")])
+            route_coordinates = routeReturn[0]
+            distance = routeReturn[1]
+            timetaken = routeReturn[2]
         else:
+            distance = None
+            timetaken = None
             route_coordinates = None
 
-        return [route_coordinates, closest_stop]
+        return [route_coordinates, closest_stop, distance, timetaken]
