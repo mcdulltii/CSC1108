@@ -1,4 +1,5 @@
 import googlemaps
+import polyline
 
 from math import radians, cos, sin, asin, sqrt
 from routes_reader.routes_reader import RoutesReader
@@ -52,13 +53,12 @@ class shortest_walk:
     def get_walking_route(self, locationStart, locationEnd):
 
         directions_result = self.gmaps.directions(locationStart, locationEnd, mode="walking")
-        route_coordinates = [(step['start_location']['lng'], step['start_location']['lat'])
-                             for step in directions_result[0]['legs'][0]['steps']]
+        route_coordinates = polyline.decode(directions_result[0]['overview_polyline']['points'])
         locationStart = (locationStart[0], locationStart[1])
         locationEnd = (locationEnd[0], locationEnd[1])
 
         route_distance_matrix = self.gmaps.distance_matrix(locationStart, locationEnd, mode='walking')['rows'][0]['elements'][0]
-        print(route_distance_matrix)
+        # print(route_distance_matrix)
         return route_coordinates, route_distance_matrix["distance"]["value"]/1000, route_distance_matrix["duration"]["value"]/60
 
     def find_nearby(self, location):
