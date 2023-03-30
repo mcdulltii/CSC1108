@@ -37,6 +37,8 @@ class Dijkstras:
         nextBusStop = end
         walkingXfer = False
         # take note of crossing over
+        startingBusStop = end
+
         busTaking = None
         busesToReturn = []
         transfers = []
@@ -54,11 +56,13 @@ class Dijkstras:
             if busTaking.isdisjoint(set(self.graph[nextBusStop][0]["Buses Supported"])):
                 busesToReturn.append(list(busTaking))
                 if walkingTransfer:
-                    transfers.append({"Transfer Stop From": currentBusStop,"Transfer Stop To": nextBusStop, "Type": "Walking"})
+                    transfers.append({"Transfer Stop From": currentBusStop,"Transfer Stop To": nextBusStop, "Type": "Walking", "Time Taken for Walk": 5,
+                                      "Time Taken for Bus":  self.distance[startingBusStop] - self.distance[currentBusStop]})
                     distanceToReturn -= self.distance[currentBusStop]
                     distanceToReturn += self.distance[nextBusStop]
                 else:
-                    transfers.append({"Transfer Stop": currentBusStop, "Type": "On-Site"})
+                    transfers.append({"Transfer Stop": currentBusStop, "Type": "On-Site", "Time Taken" : self.distance[startingBusStop] - self.distance[currentBusStop]})
+                    startingBusStop = currentBusStop
                 busTaking = set(self.graph[nextBusStop][0]["Buses Supported"])
             else:
                 busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(busTaking)
