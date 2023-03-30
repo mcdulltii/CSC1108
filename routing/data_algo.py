@@ -91,17 +91,12 @@ class RoutingAlgo:
                 }
             )
         routeObject = self.routeCalculator.calculate_route(startingBusStop, endingBusStop)
-
-        # print("LOG")
-        # print(startingCloseBusStop)
-        timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(minutes=startingCloseBusStop[3])).strftime("%H%M%S")
-        # print(timeStart)
+        timeStart = self._calculating_time(timeStart, startingCloseBusStop[3], 1)
         timeTravelling = routeObject["Distance"]
 
         timeToAdd += startingCloseBusStop[3]
         timeTravelling += startingCloseBusStop[3]
         toReturn["Routes"][0]["End Arrival Time"] = timeStart
-        # print("Walking Route to " + startingBusStop + ":" + str(startingCloseBusStop[0]))
         busStopStart = routeObject["Pathing"][0]
 
         toReturn["Time Start"] = timeStart
@@ -186,7 +181,7 @@ class RoutingAlgo:
                                 "End": busStopStart,
                                 "Time Taken": returnWalkingRouteCalc[2],
                                 "Start Arrival Time": timeStart,
-                                "Distance Traveleled": returnWalkingRouteCalc[1]
+                                "Distance Travelled": returnWalkingRouteCalc[1]
                             })
                             timeToAdd += returnWalkingRouteCalc[2]
                             timeTravelling += returnWalkingRouteCalc[2]
@@ -423,14 +418,28 @@ class RoutingAlgo:
     def _calculate_time_taken(distance):
         return distance / 50 * 60
 
+    @staticmethod
+    def _calculating_time(startingTime, operandInMinutes, addorminus):
+        toReturnTime = None
+        if(addorminus == 0):
+            toReturnTime = (datetime.strptime(startingTime, "%H%M%S") - timedelta(
+                minutes=operandInMinutes)).strftime("%H%M%S")
+        else:
+            toReturnTime = (datetime.strptime(startingTime, "%H%M%S") + timedelta(
+                minutes=operandInMinutes)).strftime("%H%M%S")
+        return toReturnTime
+
+
+
 
 def main():
     routes = RoutingAlgo()
+    routes.walkingRouteCalculator.find_nearest_restaurants("Larkin Terminal")
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
     # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia","Jalan Stulang Laut, Johor Bahru,JHR,Malaysia"))  # one of the furthest routes
     # P403-loop -> P211-01 -> P101-loop -> P102-02 -> P102-01
-    pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia", "Jalan Stulang Baru, Johor Bahru,JHR,Malaysia")) #example 2
+    # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia", "Jalan Stulang Baru, Johor Bahru,JHR,Malaysia")) #example 2
     # pp.pprint(routes.get_route("Taman Universiti", "Johor Islamic Complex")) #Single xfer
     # pp.pprint(routes.get_route("Hub PPR Sri Stulang"tr, "AEON Tebrau City")) #Straight Route
     # pp.pprint(routes.get_route("81400 Senai, Johor, Malaysia", "No.4, Jalan Pendidikan, Taman Universiti, 81300 Johor Bahru, Johor, Malaysia"))

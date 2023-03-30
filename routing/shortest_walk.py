@@ -22,6 +22,9 @@ class shortest_walk:
     user_lat = user_geocode_result[0]['geometry']['location']['lat']
     user_lon = user_geocode_result[0]['geometry']['location']['lng']
     '''
+    def find_nearest_restaurants(self, location):
+        locationCheck = self.string_to_coordinate(location)
+        print(self.gmaps.places("Restaurant","textquery",radius="2000", location='{},{}'.format(locationCheck[0], locationCheck[1])))
 
     # haversine formula (kilometers): calculates distance between 2 points on a sphere, given longitude and latitude
     # coordinates: 1 = user location, 2 = destination location
