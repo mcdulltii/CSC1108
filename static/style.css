@@ -45,7 +45,7 @@ body {
 }
 
 .box.P101_1 {
-  background-color: #FC2947
+  background-color: #FC2947;
 }
 .box.P102_1, .box.P102_2 {
   background-color: #03C988
@@ -82,9 +82,8 @@ body {
 }
 
 .input-container {
-  display: flex;
+  display: inline;
   align-items: flex-start;
-  margin-bottom: 16px;
 }
 
 #size-two-icons {
@@ -110,6 +109,7 @@ input[type="text"] {
   border-radius: 4px;
   font-size: 16px;
   color: #222;
+  margin-bottom:1em;
 }
 
 button[type="submit"] {
@@ -188,4 +188,66 @@ button[type="submit"]:hover {
   background-color: rgba(154, 174, 236, 0.13);
   color: #0d2685;
 }
+
+.route-list{
+  list-style-type: none;
+  position: relative;
+  margin-left: 0;
+  padding-left: 1.2em;
+}
+
+.location_indicator {
+  margin-right: 0.2em;
+}
+
+.ellipsis {
+  display:block;
+  padding-left:0.35em;
+}
+
+.type {
+
+}
+
+.ellipsis-icons {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2px;
+  margin-left: 0.2em;
+}
+
+.switch {
+  width: 30px;
+  height: 30px;
+}
+
+#switch-btn {
+  background-color: white;
+  border: none;
+}
+
+
+.ellipsisP101 {
+  color: #FC2947;
+}
+.ellipsisP102 {
+  color: #03C988
+}
+.ellipsisP106 {
+  color: #820000
+}
+.ellipsisP202{
+  color: #F0997D
+}
+.ellipsisP211{
+  color: #B08BBB
+}
+.ellipsisP411{
+  color: #5E8C88
+}
+.ellipsisP403{
+  color: #674747
+}
+
+
 

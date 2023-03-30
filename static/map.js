@@ -216,6 +216,22 @@ function placeMarker(location) {
     }
 }
 
+function swapLocations() {
+  // Get references to the start and end location inputs
+  const startInput = document.getElementById('start-location');
+  const endInput = document.getElementById('end-location');
+
+  // Get the values of the start and end location inputs
+  const startValue = startInput.value;
+  const endValue = endInput.value;
+
+  // Swap the values of the start and end location inputs
+  startInput.value = endValue;
+  endInput.value = startValue;
+
+}
+
+
 function setFocusedInput() {
   // Set latest input field as the active element
   activeInput = document.activeElement;
@@ -387,11 +403,73 @@ function routeCallback(routeInfo) {
 function showRouteDetails(selectedRoute, routeIndex) {
   selectedRoute.innerHTML = "";
   const directionsList = document.createElement("ol");
+  directionsList.classList.add("route-list")
   selectedRoute.appendChild(directionsList);
+
   latestRouteInfo[routeIndex]["Routes"].forEach(step => {
-    const directionStep = document.createElement("li");
-    directionStep.textContent = step["Type"] + ": " + step["Start"] + " => " + step["End"];
-    directionsList.appendChild(directionStep);
+    const icon = document.createElement("i");
+    if(step["Type"] === "Walking"){
+      icon.classList.add("fa-solid")
+      icon.classList.add("fa-person-walking")
+    }else{
+      icon.classList.add("fa-solid")
+      icon.classList.add("fa-bus")
+    }
+
+    const megaDiv = document.createElement("div");
+    //columns with rows
+    megaDiv.classList.add("row", "test")
+    const firstCol = document.createElement("div");
+    firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex")
+    firstCol.appendChild(icon)
+    const secondCol =  document.createElement("div");
+    secondCol.classList.add("col-sm-1")
+    var iconCircle = document.createElement("i")
+    iconCircle.classList.add("location_indicator", "fa-regular", "fa-circle")
+    secondCol.appendChild(iconCircle)
+    var classToAdd = "ellipsis"+ step["Type"].substring(0,4)
+    for(var i = 0; i < 6; i ++){
+      var elip = document.createElement("i")
+      elip.classList.add("ellipsis", "fa-solid", "fa-ellipsis-vertical", classToAdd)
+      secondCol.appendChild(elip)
+    }
+    const thirdCol = document.createElement("div");
+    thirdCol.classList.add("col-sm-8")
+    var startLocation = document.createElement("p")
+    startLocation.textContent = step["Start"]
+    var travelMode = document.createElement("strong")
+    travelMode.textContent = step["Type"]
+    var travelDistance = document.createElement("p")
+    travelDistance.textContent = "placeholder"
+    console.log(step)
+    thirdCol.appendChild(startLocation)
+    thirdCol.appendChild(travelMode)
+    thirdCol.appendChild(travelDistance)
+    megaDiv.appendChild(firstCol)
+    megaDiv.appendChild(secondCol)
+    megaDiv.appendChild(thirdCol)
+    directionsList.append(megaDiv)
+    // const directionStep = document.createElement("li");
+    // var ellipsisIcons = "";
+    // var ellipsisToAdd = "";
+    // console.log(classToAdd)
+    // ellipsisToAdd = "<i class='ellipsis fa-solid fa-ellipsis-vertical "+ classToAdd+"'></i>"
+    //   for (var i = 0; i < 3; i++) {
+    //     if(i === 1){
+    //       ellipsisIcons +=
+    //           "<i style='display:inline' class='ellipsis fa-solid fa-ellipsis-vertical "+ classToAdd+"'></i>" +
+    //           "<strong>"+ step["Type"]+"</strong>"
+    //     }else{
+    //       ellipsisIcons += ellipsisToAdd;
+    //
+    //     }
+    //   }
+    // directionStep.innerHTML =
+    //     "<i class='location_indicator fa-regular fa-circle'></i>"+ step["Start"]+"<br>"+
+    //     ellipsisIcons+
+    //     "<i class='location_indicator fa-regular fa-circle'></i>"+ step["End"]+"<br>"
+    //
+    // directionsList.appendChild(directionStep);
   });
   selectedRoute.style.display = "block";
   drawShortestRoute(latestRouteInfo[routeIndex]);
@@ -460,3 +538,6 @@ function toHoursAndMinutes(totalMinutes) {
   const minutes = Math.round(totalMinutes % 60);
   return { hours, minutes };
 }
+
+
+
