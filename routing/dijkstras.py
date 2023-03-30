@@ -75,6 +75,6 @@ class Dijkstras:
         # print(transfers)
         toReturn = {"Pathing": pathing, "Buses To Return": busesToReturn, "Transfers": transfers,
                     "Distance": distanceToReturn}
-        print(toReturn)
+        # print(toReturn)
         self.toReturn = toReturn
         return toReturn
