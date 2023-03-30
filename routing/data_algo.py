@@ -87,7 +87,8 @@ class RoutingAlgo:
                     "Start": startingLocation,
                     "End": startingBusStop,
                     "Start Arrival Time": timeStart,
-                    "Distance Travelled": startingCloseBusStop[2]
+                    "Distance Travelled": startingCloseBusStop[2],
+                    "Time Taken": startingCloseBusStop[3]
                 }
             )
         routeObject = self.routeCalculator.calculate_route(startingBusStop, endingBusStop)
@@ -141,7 +142,7 @@ class RoutingAlgo:
             toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
             toReturn["Routes"][indexOfRouteObj]["Number Of Stops"] = self._get_number_of_stops(routeObject["Pathing"], busStopStart["Name"],busStopEnd)
             toReturn["Routes"][indexOfRouteObj]["End Arrival Time"] = timeStart
-            toReturn["Routes"][indexOfRouteObj]["Time Taken"] = transferObject["Time Taken"]
+            toReturn["Routes"][indexOfRouteObj]["Time Taken"] = self._calculating_time(toReturn["Routes"][indexOfRouteObj]["Bus Arrival Time"], toReturn["Routes"][indexOfRouteObj]["End Arrival Time"], 3)
 
             startRecording = False
             while True:
@@ -197,7 +198,8 @@ class RoutingAlgo:
                     "Start Arrival Time": timeStart,
                     "Start": endingBusStop,
                     "End": endingLocation,
-                    "Distance Travelled": endingCloseBusStop[2]
+                    "Distance Travelled": endingCloseBusStop[2],
+                    "Time Taken": endingCloseBusStop[3]
                 }
             )
             timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
@@ -424,6 +426,8 @@ class RoutingAlgo:
         if(addorminus == 0):
             toReturnTime = (datetime.strptime(startingTime, "%H%M%S") - timedelta(
                 minutes=operandInMinutes)).strftime("%H%M%S")
+        if(addorminus == 3):
+            toReturnTime = (datetime.strptime(operandInMinutes, "%H%M%S") - datetime.strptime(startingTime, "%H%M%S")).total_seconds()/60
         else:
             toReturnTime = (datetime.strptime(startingTime, "%H%M%S") + timedelta(
                 minutes=operandInMinutes)).strftime("%H%M%S")
@@ -434,10 +438,10 @@ class RoutingAlgo:
 
 def main():
     routes = RoutingAlgo()
-    #routes.walkingRouteCalculator.find_nearest_restaurants("Larkin Terminal")
+    routes.walkingRouteCalculator.find_nearest_restaurants("Larkin Terminal")
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
-    pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia","Jalan Stulang Laut, Johor Bahru,JHR,Malaysia"))  # one of the furthest routes
+    # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia","Jalan Stulang Laut, Johor Bahru,JHR,Malaysia"))  # one of the furthest routes
     # P403-loop -> P211-01 -> P101-loop -> P102-02 -> P102-01
     # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia", "Jalan Stulang Baru, Johor Bahru,JHR,Malaysia")) #example 2
     # pp.pprint(routes.get_route("Taman Universiti", "Johor Islamic Complex")) #Single xfer

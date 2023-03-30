@@ -28,8 +28,11 @@ class shortest_walk:
         formattedLatLong = {"lat": locationCheck[0], "lng": locationCheck[1]}
         results = self.gmaps.places("Restaurant", radius="1000", location=formattedLatLong)["results"]
         for result in results:
+            print(result)
             toReturn.append({
-                "Name": "lol"
+                "Name": result["name"],
+                "Location": result["formatted_address"],
+                "Coordinates": result["location"]
             })
         print()
 
