@@ -418,9 +418,9 @@ function drawShortestRoute(shortestRoute) {
     var routePath = route["Route"];
     // Connect paths if route type is walking
     if (routeType === "Walking") {
-      if (index > 0)
+      if (index > 0 && shortestRoute["Routes"][index - 1]["Route"].slice(-1)[0] !== routePath[0])
         routePath.unshift(shortestRoute["Routes"][index - 1]["Route"].slice(-1)[0]);
-      if (index < shortestRoute["Routes"].length - 1)
+      if (index < shortestRoute["Routes"].length - 1 && shortestRoute["Routes"][index + 1]["Route"][0] !== routePath[routePath.length - 1])
         routePath.push(shortestRoute["Routes"][index + 1]["Route"][0]);
     }
     // Build shortest route polyline array
