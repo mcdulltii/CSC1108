@@ -68,6 +68,8 @@ class RoutingAlgo:
         gpsBusStopStart = startingCloseBusStop[1]["GPS Location"].split(", ")
 
         endingCloseBusStop = self.walkingRouteCalculator.find_nearby(endingLocationCoords)
+        # Invert ending walking route
+        endingCloseBusStop[0] = endingCloseBusStop[0][::-1]
         endingBusStop = endingCloseBusStop[1]["Name"]
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
 
