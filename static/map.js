@@ -530,7 +530,6 @@ function showNearestPlaces(selectedRoute) {
 
 function showRouteDetails(selectedRoute, routeIndex) {
   selectedRoute.innerHTML = "";
-  selectedRoute.style.display = "block";
   const directionsList = document.createElement("ol");
   directionsList.classList.add("route-list")
   selectedRoute.appendChild(directionsList);
