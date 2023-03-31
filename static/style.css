@@ -23,8 +23,6 @@ body {
   padding-left: 10px;
 }
 
-
-
 #show-overlay,
 #hide-overlay,
 #bus-select,
@@ -207,10 +205,6 @@ button[type="submit"]:hover {
   padding-left:0.35em;
 }
 
-.type {
-
-}
-
 .ellipsis-icons {
   display: flex;
   flex-direction: column;
@@ -221,13 +215,13 @@ button[type="submit"]:hover {
 .switch {
   width: 30px;
   height: 30px;
+  cursor: pointer;
 }
 
 #switch-btn {
   background-color: white;
   border: none;
 }
-
 
 .ellipsisP101 {
   color: #FC2947;
@@ -250,6 +244,3 @@ button[type="submit"]:hover {
 .ellipsisP403{
   color: #674747
 }
-
-
-
