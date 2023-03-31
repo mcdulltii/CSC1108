@@ -421,6 +421,7 @@ function showRouteDetails(selectedRoute, routeIndex) {
   directionsList.classList.add("route-list")
   selectedRoute.appendChild(directionsList);
   var lastThird;
+
   latestRouteInfo[routeIndex]["Routes"].forEach(step => {
     const icon = document.createElement("i");
     if(step["Type"] === "Walking"){
@@ -431,10 +432,20 @@ function showRouteDetails(selectedRoute, routeIndex) {
       icon.classList.add("fa-bus")
     }
 
+
+    // var endArrivalTime = document.createElement("p")
+    // endArrivalTime.textContent = tConvert(step["End Arrival Time"].substring(0, 2) + ":" + step["End Arrival Time"].substring(2, 4));
+    // endArrivalTime.textContent = endArrivalTime.textContent.slice(0, endArrivalTime.textContent.length - 2) + " " + endArrivalTime.textContent.slice(endArrivalTime.textContent.length - 2);
+
+
+
     const megaDiv = document.createElement("div");
     //columns with rows
     megaDiv.classList.add("row", "test")
     const firstCol = document.createElement("div");
+
+
+    // firstCol.classList.add("col-sm-1", "align-self-flex-start", "justify-content-flex-start");
     firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex")
     firstCol.appendChild(icon)
 
@@ -448,7 +459,7 @@ function showRouteDetails(selectedRoute, routeIndex) {
       var elip = document.createElement("i")
       elip.classList.add("ellipsis", "fa-solid", "fa-ellipsis-vertical", classToAdd)
       secondCol.appendChild(elip)
-      // secondCol.appendChild(iconCircle)
+
     }
 
 
@@ -470,6 +481,8 @@ function showRouteDetails(selectedRoute, routeIndex) {
     }
 
         console.log(step)
+
+
     //firstCol.appendChild(endArrivalTime)
     thirdCol.appendChild(startLocation)
     thirdCol.appendChild(travelMode)
