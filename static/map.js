@@ -547,12 +547,12 @@ function showRouteDetails(selectedRoute, routeIndex) {
 
     const megaDiv = document.createElement("div");
     megaDiv.classList.add("row", "test")
+
     const firstCol = document.createElement("div");
 
     var endArrivalTime = document.createElement("span")
     endArrivalTime.textContent = tConvert(step["End Arrival Time"].substring(0, 2) + ":" + step["End Arrival Time"].substring(2, 4));
     endArrivalTime.textContent = endArrivalTime.textContent.slice(0, endArrivalTime.textContent.length - 2) + " " + endArrivalTime.textContent.slice(endArrivalTime.textContent.length - 2);
-    //firstCol.classList.add(endArrivalTime.toString(), "align-self-flex-start", "d-flex");
     firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex")
     firstCol.appendChild(icon)
 
@@ -562,19 +562,23 @@ function showRouteDetails(selectedRoute, routeIndex) {
     iconCircle.classList.add("location_indicator", "fa-regular", "fa-circle")
     secondCol.appendChild(iconCircle)
     var classToAdd = "ellipsis" + step["Type"].substring(0, 4)
+
     for (var i = 0; i < 6; i++) {
       var elip = document.createElement("i")
       elip.classList.add("ellipsis", "fa-solid", "fa-ellipsis-vertical", classToAdd)
+      if (step["Type"] === "Walking") {
+        elip.style.color = "#73AB84"
+      } else {
+        elip.style.color = "#B58498"
+      }
       secondCol.appendChild(elip)
     }
-
-    // var pipe = "pipe"
-
     const thirdCol = document.createElement("div");
     lastThird = secondCol
     thirdCol.classList.add("col-sm-8")
 
     var startLocation = document.createElement("p")
+    startLocation.classList.add("display-time-and-location");
     startLocation.textContent = step["Start"];
 
     var travelMode = document.createElement("strong")
