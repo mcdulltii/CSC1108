@@ -325,6 +325,8 @@ function routeCallback(routeInfo) {
       // Create routes-box and append to directions-panel
       const routesBox = document.createElement("div");
       routesBox.classList.add("routes-box");
+
+
       directionsPanel.innerHTML = "";
       directionsPanel.appendChild(routesBox);
 
@@ -339,17 +341,19 @@ function routeCallback(routeInfo) {
       // Create start and end time spans and append to time-wrapper
       const startTime = document.createElement("span");
       startTime.classList.add("start-time");
-      startTime.textContent = tConvert(shortestRoute["Time Start"]);
+      startTime.textContent = tConvert(shortestRoute["Time Start"].substring(0, 2) + ":" + shortestRoute["Time Start"].substring(2, 4) + " ");
+      startTime.textContent = startTime.textContent.slice(0, startTime.textContent.length - 2) + " " + startTime.textContent.slice(startTime.textContent.length - 2);
       timeWrapper.appendChild(startTime);
 
       const timeSeparator = document.createElement("span");
       timeSeparator.classList.add("time-separator");
-      timeSeparator.textContent = " - ";
+      timeSeparator.textContent = "-";
       timeWrapper.appendChild(timeSeparator);
 
       const endTime = document.createElement("span");
       endTime.classList.add("end-time");
-      endTime.textContent = tConvert(shortestRoute["Time End"]);
+      endTime.textContent = tConvert(shortestRoute["Time End"].substring(0, 2) + ":" + shortestRoute["Time End"].substring(2, 4));
+      endTime.textContent = endTime.textContent.slice(0, endTime.textContent.length - 2) + " " + endTime.textContent.slice(endTime.textContent.length - 2);
       timeWrapper.appendChild(endTime);
 
       // Create duration span and append to time-wrapper
@@ -374,22 +378,33 @@ function routeCallback(routeInfo) {
       // Create selected-route div and append to directions-panel
       const selectedRoute = document.createElement("div");
       selectedRoute.classList.add("selected-route");
-      if (routeInfoIndex == 0)
-        selectedRoute.style.display = "block";
-      else
-        selectedRoute.style.display = "none";
+      selectedRoute.style.display = "none"
       directionsPanel.appendChild(selectedRoute);
+
 
       // Add click event listener to details button
       detailsBtn.addEventListener("click", (event) => {
         // Hide all selected-route divs
         const selectedRoutes = document.querySelectorAll(".selected-route");
         selectedRoutes.forEach(selectedRoute => {
-          selectedRoute.style.display = "none";
+          if(selectedRoute.style.display == "block"){
+              selectedRoute.style.display = "none";
+
+          }else{
+              selectedRoute.style.display = "block";
+
+          }
         });
         // Show selected-route for this details button
         showRouteDetails(selectedRoute, event.target.value);
       });
+
+
+      // routesBox.addEventListener("click",(event) => {
+      //   const routesBoxes = document.querySelectorAll()
+      //
+      //   })
+      // })
 
       routeInfoIndex++;
     });
@@ -405,7 +420,7 @@ function showRouteDetails(selectedRoute, routeIndex) {
   const directionsList = document.createElement("ol");
   directionsList.classList.add("route-list")
   selectedRoute.appendChild(directionsList);
-
+  var lastThird;
   latestRouteInfo[routeIndex]["Routes"].forEach(step => {
     const icon = document.createElement("i");
     if(step["Type"] === "Walking"){
@@ -422,6 +437,7 @@ function showRouteDetails(selectedRoute, routeIndex) {
     const firstCol = document.createElement("div");
     firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex")
     firstCol.appendChild(icon)
+
     const secondCol =  document.createElement("div");
     secondCol.classList.add("col-sm-1")
     var iconCircle = document.createElement("i")
@@ -432,46 +448,42 @@ function showRouteDetails(selectedRoute, routeIndex) {
       var elip = document.createElement("i")
       elip.classList.add("ellipsis", "fa-solid", "fa-ellipsis-vertical", classToAdd)
       secondCol.appendChild(elip)
+      // secondCol.appendChild(iconCircle)
     }
+
+
     const thirdCol = document.createElement("div");
+    lastThird = secondCol
     thirdCol.classList.add("col-sm-8")
+
     var startLocation = document.createElement("p")
-    startLocation.textContent = step["Start"]
+    startLocation.textContent = step["Start"];
+
     var travelMode = document.createElement("strong")
     travelMode.textContent = step["Type"]
+
     var travelDistance = document.createElement("p")
-    travelDistance.textContent = "placeholder"
-    console.log(step)
+    if (step["Type"] === "Walking") {
+      travelDistance.textContent = step["Distance Travelled"] + " km"
+    } else {
+      travelDistance.textContent = step["Time Taken"] + " min (" + step["Number Of Stops"] + " stops)"
+    }
+
+        console.log(step)
+    //firstCol.appendChild(endArrivalTime)
     thirdCol.appendChild(startLocation)
     thirdCol.appendChild(travelMode)
     thirdCol.appendChild(travelDistance)
+
     megaDiv.appendChild(firstCol)
     megaDiv.appendChild(secondCol)
     megaDiv.appendChild(thirdCol)
     directionsList.append(megaDiv)
-    // const directionStep = document.createElement("li");
-    // var ellipsisIcons = "";
-    // var ellipsisToAdd = "";
-    // console.log(classToAdd)
-    // ellipsisToAdd = "<i class='ellipsis fa-solid fa-ellipsis-vertical "+ classToAdd+"'></i>"
-    //   for (var i = 0; i < 3; i++) {
-    //     if(i === 1){
-    //       ellipsisIcons +=
-    //           "<i style='display:inline' class='ellipsis fa-solid fa-ellipsis-vertical "+ classToAdd+"'></i>" +
-    //           "<strong>"+ step["Type"]+"</strong>"
-    //     }else{
-    //       ellipsisIcons += ellipsisToAdd;
-    //
-    //     }
-    //   }
-    // directionStep.innerHTML =
-    //     "<i class='location_indicator fa-regular fa-circle'></i>"+ step["Start"]+"<br>"+
-    //     ellipsisIcons+
-    //     "<i class='location_indicator fa-regular fa-circle'></i>"+ step["End"]+"<br>"
-    //
-    // directionsList.appendChild(directionStep);
+
   });
-  selectedRoute.style.display = "block";
+  var iconDot = document.createElement("i")
+  iconDot.classList.add("location_indicator", "fa-regular", "fa-circle-dot")
+  lastThird.append(iconDot);
   drawShortestRoute(latestRouteInfo[routeIndex]);
 }
 

@@ -7,7 +7,7 @@ body {
 
 #map-canvas {
   width: 100%;
-  height: 100vh;
+  height: 100%;
 }
 
 #floating-panel {
@@ -22,6 +22,8 @@ body {
   line-height: 30px;
   padding-left: 10px;
 }
+
+
 
 #show-overlay,
 #hide-overlay,
@@ -157,13 +159,13 @@ button[type="submit"]:hover {
 }
 
 #directions-panel {
-  height: 46em;
+  height: 28em;
   overflow: scroll;
   overflow-x: hidden;
 }
 
 .selected-route {
-  max-height: 200px;
+  max-height: 350px;
   overflow: scroll;
   overflow-x: hidden;
 }
