@@ -267,3 +267,7 @@ button[type="submit"]:hover {
   margin: 0 8px;
   color: lightslategrey;
 }
+
+#loading {
+  text-align: center;
+}
