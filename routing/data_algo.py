@@ -74,7 +74,8 @@ class RoutingAlgo:
         endingCloseBusStop[0] = endingCloseBusStop[0][::-1]
         endingBusStop = endingCloseBusStop[1]["Name"]
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
-        timeStart = datetime.now().strftime("%H%M%S")
+        #timeStart = datetime.now().strftime("%H%M%S")
+        timeStart = "091519"
         timeToAdd = 0
 
         returnRoutes = []
@@ -97,6 +98,7 @@ class RoutingAlgo:
 
         timeToAdd += startingCloseBusStop[3]
         timeTravelling += startingCloseBusStop[3]
+
         toReturn["Routes"][0]["End Arrival Time"] = timeStart
         busStopStart = routeObject["Pathing"][0]
 
