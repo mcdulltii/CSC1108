@@ -7,6 +7,7 @@ class Dijkstras:
     graph = None
     distance = {}
     prev = {}
+    forBusTransferFunction = None
 
     def __init__(self, graph):
         self.graph = graph
@@ -27,10 +28,15 @@ class Dijkstras:
                     # list of verticles connected to v
                     if self.graph[v][i]["Name"] in q:
                         alt = self.distance[v] + self.graph[v][i]["Time Taken"]
-                        #check xfer here
-                        if alt < self.distance[self.graph[v][i]["Name"]]:
-                            self.distance[self.graph[v][i]["Name"]] = alt
-                            self.prev[self.graph[v][i]["Name"]] = v
+                        if self._check_if_xfer(v):
+                            if alt + 30 < self.distance[self.graph[v][i]["Name"]]:
+                                self.distance[self.graph[v][i]["Name"]] = alt
+                                self.prev[self.graph[v][i]["Name"]] = v
+                        else:
+                            if alt < self.distance[self.graph[v][i]["Name"]]:
+                                self.distance[self.graph[v][i]["Name"]] = alt
+                                self.prev[self.graph[v][i]["Name"]] = v
+
         # print(self.prev)
         toReturn = {"Transfers": []}
         pathing = [end]
@@ -70,11 +76,22 @@ class Dijkstras:
             walkingTransfer = False
             if nextBusStop == start:
                 busesToReturn.append(list(busTaking))
-        # print(pathing)
-        # print(busesToReturn)
-        # print(transfers)
+
         toReturn = {"Pathing": pathing, "Buses To Return": busesToReturn, "Transfers": transfers,
                     "Distance": distanceToReturn}
-        # print(toReturn)
         self.toReturn = toReturn
         return toReturn
+
+    def _check_if_xfer(self, currentBusStop):
+        if self.forBusTransferFunction == None:
+            self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+            return False
+        else:
+            if self.forBusTransferFunction.isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"])):
+                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+                return True
+            else:
+                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+                return False
+
+
