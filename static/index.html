@@ -1,58 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Johor Bahru Route Planner</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
   <script src="{{url_for('static', filename='map.js')}}"></script>
   <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')}}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 </head>
+
 <body>
   <table width=100% height=100%>
     <tr>
-      <td class="input-items" width=20%>
+      <td class="input-items" width=25%>
         <!-- HTML and JS elements -->
-        <form action="/form-ori-dest" method="post" id="origin-dest-form" class="input-origin-destination" target="dummyframe">
-          <div class="input-modal">
-            <div class="input-container">
-              <img src="static/images/hollow-circle.png" alt="Start:" id="size-two-icons">
-              <input type="text" id="start-location" name="origin" placeholder="Choose starting point..." id="placeholder-padding" onfocus="setFocusedInput()">
+        <form action="/form-ori-dest" method="post" id="origin-dest-form" class="input-origin-destination"
+          target="dummyframe">
+          <div class="input-modal container">
+            <div class="row">
+              <div class="col-md-10">
+                <div class="input-container row">
+                  <img src="static/images/hollow-circle.png" class="align-self-center" alt="Start:" id="size-two-icons">
+                  <input type="text" id="start-location" name="origin" placeholder="Choose starting point..."
+                    id="placeholder-padding" onfocus="setFocusedInput()">
+                </div>
+                <div class="input-container row">
+                  <img src="static/images/destination.png" class="align-self-center" alt="End:" id="size-two-icons">
+                  <input type="text" id="end-location" name="destination" placeholder="Choose destination..."
+                    id="placeholder-padding" onfocus="setFocusedInput()">
+                </div>
+              </div>
+              <div class="col-md-2 align-self-center">
+                <button type="button" id="switch-btn">
+                  <img src="static/images/switch.png" alt="Swap" class="switch">
+                </button>
+              </div>
+              <button type="submit" id="search-btn">
+                <img src="static/images/search.png" alt="Search now" id="search-btn-size">
+              </button>
             </div>
-            <div class="input-container">
-              <img src="static/images/destination.png" alt="End:" id="size-two-icons">
-              <input type="text" id="end-location" name="destination" placeholder="Choose destination..." id="placeholder-padding" onfocus="setFocusedInput()">
-            </div>
-            <button type="submit" id="search-btn">
-              <img src="static/images/search.png" alt="Search now" id="search-btn-size">
-            </button>
           </div>
         </form>
         <div id="directions-panel"></div>
       </td>
-      <td width=80%>
+      <td width=70%>
         <div id="floating-panel">
           <table width=100% height=100%>
             <tr>
               <td>
-                <input id="show-overlay" type="button" value="Show overlays"/>
-                <input id="hide-overlay" type="button" value="Hide overlays"/>
+                <input id="show-overlay" type="button" value="Show overlays" />
+                <input id="hide-overlay" type="button" value="Hide overlays" />
               </td>
             </tr>
             <tr>
               <td>
-                <input id="bus-select" type="button" value="Show all"/>
-                <input id="bus-deselect" type="button" value="Clear all"/>
+                <input id="bus-select" type="button" value="Show all" />
+                <input id="bus-deselect" type="button" value="Clear all" />
               </td>
             </tr>
             <tr>
               <td>
                 <div id="bus-dropdown" class="btn-group">
-                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Bus Route Selection
                   </button>
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     {% for bus_number in bus_selection %}
-                    <button class="dropdown-item bus-item" name="{{bus_number}}" value="false" type="button"><div class='box {{bus_number}}'></div>{{bus_number}}</a>
+                    <button class="dropdown-item bus-item" name="{{bus_number}}" value="false" type="button">
+                      <div class='box {{bus_number}}'></div><a>{{bus_number}}</a>
+                    </button>
                     {% endfor %}
                   </div>
                 </div>
@@ -70,8 +91,18 @@
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{api_key}}&callback=initialize"></script>
-  <script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
+    integrity="sha512-fD9DI5bZwQxOi7MhYWnnNPlvXdp/2Pj3XSTRrFs5FQa4mizyGLnJcN6tuvUS6LbmgN1ut+XGSABKvjN0H6Aoow=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script type="text/javascript"
+    src="https://maps.googleapis.com/maps/api/js?key={{api_key}}&callback=initialize"></script>
+  <script>// Add an event listener to the switch button to call the swapLocations function when clicked
+    const switchBtn = document.getElementById('switch-btn');
+    switchBtn.addEventListener('click', () => {
+      swapLocations();
+      document.getElementById('origin-dest-form').submit();
+    });
+
     document.forms['origin-dest-form'].addEventListener('submit', (event) => {
       event.preventDefault();
       fetch(event.target.action, {
@@ -88,4 +119,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -13,6 +13,8 @@ var geocoder;
 var routePolylines = [];
 // Search route markers
 var routeMarkers = [];
+// Search place markers
+var placeMarkers = [];
 // Latest route information
 var latestRouteInfo;
 // List of bus polylines
@@ -74,14 +76,14 @@ function initialize() {
   // Google map options
   var mapOptions = {
     // Hardcoded center
-    center: {lat: 1.5573879239318515, lng: 103.70745681228475},
+    center: { lat: 1.5573879239318515, lng: 103.70745681228475 },
     // Zoom out to view all routes
     zoom: 12.55
   };
   // Initialize map on html canvas
   map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
   // Add mouseclick event listener to overlay marker
-  google.maps.event.addListener(map, 'click', function(event){
+  google.maps.event.addListener(map, 'click', function (event) {
     placeMarker(event.latLng);
   });
   // Initialize geocoder
@@ -92,31 +94,31 @@ function initialize() {
 
   // Add bus-dropdown items event listeners
   var busItems = document.getElementsByClassName('bus-item');
-  for (let i=0; i<busItems.length; i++) {
+  for (let i = 0; i < busItems.length; i++) {
     const busCheckbox = busItems[i];
     const busItemValue = busCheckbox.name;
     // Set default checkbox as unchecked
     busCheckbox.value = 'false';
     // Add bus-item event listener
-    busCheckbox.addEventListener('click', function() {
+    busCheckbox.addEventListener('click', function () {
       handleBusCheckbox(busItemValue, null);
     });
   }
 
   // Add bus selection event listeners
-  document.getElementById('bus-select').addEventListener('click', function() {
+  document.getElementById('bus-select').addEventListener('click', function () {
     toggleAllBusCheckbox(true);
   });
-  document.getElementById('bus-deselect').addEventListener('click', function() {
+  document.getElementById('bus-deselect').addEventListener('click', function () {
     toggleAllBusCheckbox(false);
   });
 
   // Add button event listeners
-  document.getElementById('show-overlay').addEventListener('click', function() {
+  document.getElementById('show-overlay').addEventListener('click', function () {
     // Show bus routes
     overlayBusRoutes(true);
   });
-  document.getElementById('hide-overlay').addEventListener('click', function() {
+  document.getElementById('hide-overlay').addEventListener('click', function () {
     // Hide bus routes
     overlayBusRoutes(false);
   });
@@ -126,7 +128,7 @@ function overlayBusRoute(busNumber, direction, color, googleMap) {
   const key = busNumber + '_' + direction;
   // Retrieve bus routes via GET request
   if (busPolylines[key] === null) {
-    getBusRoute(busNumber, direction).then(function(busRoute) {
+    getBusRoute(busNumber, direction).then(function (busRoute) {
       // Build bus route polyline array
       busPolylines[key] = new google.maps.Polyline({
         path: busRoute,
@@ -202,7 +204,7 @@ function placeMarker(location) {
       // Use geocode to reverse translate lat lng address
       geocoder.geocode({
         'location': latlng
-      }, function(results, status) {
+      }, function (results, status) {
         if (status === 'OK') {
           if (results[0]) {
             activeInput.value = results[0].formatted_address;
@@ -216,6 +218,22 @@ function placeMarker(location) {
     }
 }
 
+function swapLocations() {
+  // Get references to the start and end location inputs
+  const startInput = document.getElementById('start-location');
+  const endInput = document.getElementById('end-location');
+
+  // Get the values of the start and end location inputs
+  const startValue = startInput.value;
+  const endValue = endInput.value;
+
+  // Swap the values of the start and end location inputs
+  startInput.value = endValue;
+  endInput.value = startValue;
+
+}
+
+
 function setFocusedInput() {
   // Set latest input field as the active element
   activeInput = document.activeElement;
@@ -223,7 +241,7 @@ function setFocusedInput() {
 
 function getBusRoute(busNumber, direction) {
   // Return bus route after GET request succeeds
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     // Bus number and direction as key
     const key = busNumber + '_' + direction;
     var xhttp = new XMLHttpRequest();
@@ -242,7 +260,7 @@ function getBusRoute(busNumber, direction) {
 
 function toggleAllBusCheckbox(isSelected) {
   var busItems = document.getElementsByClassName('bus-item');
-  for (let i=0; i<busItems.length; i++) {
+  for (let i = 0; i < busItems.length; i++) {
     const busCheckbox = busItems[i];
     const busItemValue = busCheckbox.name;
     // Toggle all bus checkboxes
@@ -301,6 +319,7 @@ function routeCallback(routeInfo) {
   if (routeInfo.hasOwnProperty("errorCode"))
     alert("Failed to get route!");
   else {
+    console.log(routeInfo);
     latestRouteInfo = routeInfo;
     routeInfoIndex = 0;
     const directionsPanel = document.getElementById("directions-panel");
@@ -309,6 +328,7 @@ function routeCallback(routeInfo) {
       // Create routes-box and append to directions-panel
       const routesBox = document.createElement("div");
       routesBox.classList.add("routes-box");
+
       directionsPanel.innerHTML = "";
       directionsPanel.appendChild(routesBox);
 
@@ -323,17 +343,19 @@ function routeCallback(routeInfo) {
       // Create start and end time spans and append to time-wrapper
       const startTime = document.createElement("span");
       startTime.classList.add("start-time");
-      startTime.textContent = tConvert(shortestRoute["Time Start"]);
+      startTime.textContent = tConvert(shortestRoute["Time Start"].substring(0, 2) + ":" + shortestRoute["Time Start"].substring(2, 4) + " ");
+      startTime.textContent = startTime.textContent.slice(0, startTime.textContent.length - 2) + " " + startTime.textContent.slice(startTime.textContent.length - 2);
       timeWrapper.appendChild(startTime);
 
       const timeSeparator = document.createElement("span");
       timeSeparator.classList.add("time-separator");
-      timeSeparator.textContent = " - ";
+      timeSeparator.textContent = "-";
       timeWrapper.appendChild(timeSeparator);
 
       const endTime = document.createElement("span");
       endTime.classList.add("end-time");
-      endTime.textContent = tConvert(shortestRoute["Time End"]);
+      endTime.textContent = tConvert(shortestRoute["Time End"].substring(0, 2) + ":" + shortestRoute["Time End"].substring(2, 4));
+      endTime.textContent = endTime.textContent.slice(0, endTime.textContent.length - 2) + " " + endTime.textContent.slice(endTime.textContent.length - 2);
       timeWrapper.appendChild(endTime);
 
       // Create duration span and append to time-wrapper
@@ -358,10 +380,7 @@ function routeCallback(routeInfo) {
       // Create selected-route div and append to directions-panel
       const selectedRoute = document.createElement("div");
       selectedRoute.classList.add("selected-route");
-      if (routeInfoIndex == 0)
-        selectedRoute.style.display = "block";
-      else
-        selectedRoute.style.display = "none";
+      selectedRoute.style.display = "none"
       directionsPanel.appendChild(selectedRoute);
 
       // Add click event listener to details button
@@ -369,10 +388,17 @@ function routeCallback(routeInfo) {
         // Hide all selected-route divs
         const selectedRoutes = document.querySelectorAll(".selected-route");
         selectedRoutes.forEach(selectedRoute => {
-          selectedRoute.style.display = "none";
+          if (selectedRoute.style.display == "block") {
+            selectedRoute.style.display = "none";
+          } else {
+            selectedRoute.style.display = "block";
+          }
         });
         // Show selected-route for this details button
         showRouteDetails(selectedRoute, event.target.value);
+
+        // Visualize nearest places
+        showNearestPlaces(latestRouteInfo[event.target.value]);
       });
 
       routeInfoIndex++;
@@ -381,19 +407,115 @@ function routeCallback(routeInfo) {
     // Visualize first route option
     showRouteDetails(directionsPanel.children[1], 0);
     drawShortestRoute(latestRouteInfo[0]);
+
+    // Visualize nearest places
+    showNearestPlaces(latestRouteInfo[0]);
   }
+}
+
+function showNearestPlaces(selectedRoute) {
+  const nearestBars = selectedRoute["Bar Nearby End"];
+  const nearestEmbassies = selectedRoute["Embassies Nearby End"];
+  const nearestPolice = selectedRoute["Police Stations Nearby End"];
+  const nearestRestaurants = selectedRoute["Restaurants Nearby End"];
+  const nearestPlaces = [nearestBars, nearestEmbassies, nearestPolice, nearestRestaurants];
+  // Clear previous pin markers
+  if (placeMarkers) {
+    placeMarkers.forEach(placeMarker => {
+      placeMarker.setMap(null);
+    })
+  }
+  placeMarkers = [];
+  nearestPlaces.forEach(place => {
+    place.forEach(placeCoord => {
+      const mapMarker = new google.maps.Marker({
+        position: placeCoord["Coordinates"],
+        icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
+        map: map,
+      });
+      mapMarker.description = new google.maps.InfoWindow({
+        content: placeCoord["Type"] + ": " + placeCoord["Name"] + ", " + placeCoord["Rating"] + " Rating",
+      });
+      placeMarkers.push(mapMarker);
+      google.maps.event.addListener(mapMarker, 'click', function () {
+        this.description.setPosition(this.getPosition());
+        this.description.open(map); //map to display on
+      });
+    });
+  });
 }
 
 function showRouteDetails(selectedRoute, routeIndex) {
   selectedRoute.innerHTML = "";
   const directionsList = document.createElement("ol");
+  directionsList.classList.add("route-list")
   selectedRoute.appendChild(directionsList);
+  var lastThird;
+
   latestRouteInfo[routeIndex]["Routes"].forEach(step => {
-    const directionStep = document.createElement("li");
-    directionStep.textContent = step["Type"] + ": " + step["Start"] + " => " + step["End"];
-    directionsList.appendChild(directionStep);
+    const icon = document.createElement("i");
+    if (step["Type"] === "Walking") {
+      icon.classList.add("fa-solid")
+      icon.classList.add("fa-person-walking")
+    } else {
+      icon.classList.add("fa-solid")
+      icon.classList.add("fa-bus")
+    }
+
+    const megaDiv = document.createElement("div");
+    //columns with rows
+    megaDiv.classList.add("row", "test")
+    const firstCol = document.createElement("div");
+
+
+    // firstCol.classList.add("col-sm-1", "align-self-flex-start", "justify-content-flex-start");
+    firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex")
+    firstCol.appendChild(icon)
+
+    const secondCol = document.createElement("div");
+    secondCol.classList.add("col-sm-1")
+    var iconCircle = document.createElement("i")
+    iconCircle.classList.add("location_indicator", "fa-regular", "fa-circle")
+    secondCol.appendChild(iconCircle)
+    var classToAdd = "ellipsis" + step["Type"].substring(0, 4)
+    for (var i = 0; i < 6; i++) {
+      var elip = document.createElement("i")
+      elip.classList.add("ellipsis", "fa-solid", "fa-ellipsis-vertical", classToAdd)
+      secondCol.appendChild(elip)
+
+    }
+
+    const thirdCol = document.createElement("div");
+    lastThird = secondCol
+    thirdCol.classList.add("col-sm-8")
+
+    var startLocation = document.createElement("p")
+    startLocation.textContent = step["Start"];
+
+    var travelMode = document.createElement("strong")
+    travelMode.textContent = step["Type"]
+
+    var travelDistance = document.createElement("p")
+    if (step["Type"] === "Walking") {
+      travelDistance.textContent = step["Distance Travelled"] + " km"
+    } else {
+      travelDistance.textContent = step["Time Taken"] + " min (" + step["Number Of Stops"] + " stops)"
+    }
+
+    //firstCol.appendChild(endArrivalTime)
+    thirdCol.appendChild(startLocation)
+    thirdCol.appendChild(travelMode)
+    thirdCol.appendChild(travelDistance)
+
+    megaDiv.appendChild(firstCol)
+    megaDiv.appendChild(secondCol)
+    megaDiv.appendChild(thirdCol)
+    directionsList.append(megaDiv)
+
   });
-  selectedRoute.style.display = "block";
+  var iconDot = document.createElement("i")
+  iconDot.classList.add("location_indicator", "fa-regular", "fa-circle-dot")
+  lastThird.append(iconDot);
   drawShortestRoute(latestRouteInfo[routeIndex]);
 }
 
@@ -435,17 +557,30 @@ function drawShortestRoute(shortestRoute) {
     routePolyline.setMap(map);
     routePolylines.push(routePolyline);
     // Add pin to transfers
-    routeMarkers.push(new google.maps.Marker({
-      position: routePath[0],
-      icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-      map: map,
-    }));
+    if (route.hasOwnProperty("Stops In Between")) {
+      route["Stops In Between"].forEach(routeStop => {
+        const routeStopCoord = routeStop["Coordinates"].split(", ");
+        const mapMarker = new google.maps.Marker({
+          position: { "lat": parseFloat(routeStopCoord[0]), "lng": parseFloat(routeStopCoord[1]) },
+          icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+          map: map,
+        });
+        mapMarker.description = new google.maps.InfoWindow({
+          content: routeType.split("_")[0] + ": " + routeStop["Name"],
+        });
+        routeMarkers.push(mapMarker);
+        google.maps.event.addListener(mapMarker, 'click', function () {
+          this.description.setPosition(this.getPosition());
+          this.description.open(map); //map to display on
+        });
+      });
+    }
   });
 }
 
 function tConvert(time) {
   // Check correct time format and split into components
-  time = time.toString().match (/^([01]\d|2[0-3])(:)([0-5]\d).*$/) || [time];
+  time = time.toString().match(/^([01]\d|2[0-3])(:)([0-5]\d).*$/) || [time];
 
   if (time.length > 1) { // If time format correct
     time = time.slice(1);  // Remove full string match value
@@ -460,3 +595,6 @@ function toHoursAndMinutes(totalMinutes) {
   const minutes = Math.round(totalMinutes % 60);
   return { hours, minutes };
 }
+
+
+
