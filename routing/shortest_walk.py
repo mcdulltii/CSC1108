@@ -26,7 +26,7 @@ class shortest_walk:
         toReturn = []
         locationCheck = self.string_to_coordinate(location)
         formattedLatLong = {"lat": locationCheck[0], "lng": locationCheck[1]}
-        results = self.gmaps.places(keyword, radius="1250", location=formattedLatLong)["results"]
+        results = self.gmaps.places(keyword, radius="3", location=formattedLatLong)["results"]
         for result in results:
             toReturn.append({
                 "Name": result["name"],
