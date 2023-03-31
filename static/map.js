@@ -17,6 +17,16 @@ var routeMarkers = [];
 var placeMarkers = [];
 // Latest route information
 var latestRouteInfo;
+// List of bus numbers and their colours
+var busColors = {
+  "P101": "#FC2947",
+  "P102": "#03C988",
+  "P106": "#820000",
+  "P202": "#F0997D",
+  "P211": "#B08BBB",
+  "P411": "#5E8C88",
+  "P403": "#674747"
+};
 // List of bus polylines
 var busPolylines = {
   'P101_1': null,
@@ -332,6 +342,13 @@ function routeCallback(routeInfo) {
       directionsPanel.innerHTML = "";
       directionsPanel.appendChild(routesBox);
 
+      // Add event listener to routesBox to show/hide details button
+      routesBox.addEventListener("click", () => {
+
+        const detailsBtn = routesBox.querySelector(".details-btn");
+        detailsBtn.style.display = detailsBtn.style.display === "none" ? "block" : "none";
+      });
+
       // Create time-wrapper and append to routes-box
       const timeWrapperOuter = document.createElement("div");
       timeWrapperOuter.classList.add("time-wrapper");
@@ -370,17 +387,64 @@ function routeCallback(routeInfo) {
       duration.textContent = durationText.join(" ");
       timeWrapperOuter.appendChild(duration);
 
+      const icons = document.createElement("div");
+      icons.classList.add("icons-container");
+      const routes = shortestRoute["Routes"];
+
+      for (let i = 0; i < routes.length; i++) {
+        const route = routes[i];
+        const icon = document.createElement("i");
+
+        // Add the bus number
+        const busNumber = document.createElement("span");
+        busNumber.textContent = route["Type"].substring(0, 4);
+        const routeType = busColors[route["Type"].substring(0, 4)];
+        busNumber.style.backgroundColor = routeType;
+
+        if (route["Type"] === "Walking") {
+          icon.classList.add("fa-solid");
+          icon.classList.add("fa-person-walking");
+          icons.appendChild(icon);
+        } else {
+          icon.classList.add("fa-solid");
+          icon.classList.add("fa-bus");
+          busNumber.classList.add("bus-number");
+          icons.appendChild(icon);
+          icons.appendChild(busNumber);
+        }
+
+        // Add ">" in between icons
+        if (i < routes.length - 1) {
+          var angleRight = document.createElement("i");
+          angleRight.classList.add("angle-right", "fa-solid", "fa-chevron-right")
+          icons.appendChild(angleRight)
+        }
+      }
+
+      const firstCol = document.createElement("div");
+      firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex");
+      firstCol.appendChild(icons);
+      routesBox.appendChild(firstCol);
+
       // Create details button and append to routes-box
       const detailsBtn = document.createElement("button");
       detailsBtn.classList.add("details-btn");
       detailsBtn.textContent = "Details";
       detailsBtn.value = routeInfoIndex;
+
+      // Only show details button for first route
+      if (routeInfoIndex === 0) {
+        detailsBtn.style.display = "block";
+      } else {
+        detailsBtn.style.display = "none";
+      }
+
       routesBox.appendChild(detailsBtn);
 
       // Create selected-route div and append to directions-panel
       const selectedRoute = document.createElement("div");
       selectedRoute.classList.add("selected-route");
-      selectedRoute.style.display = "none"
+      selectedRoute.style.display = "none";
       directionsPanel.appendChild(selectedRoute);
 
       // Add click event listener to details button
@@ -399,6 +463,9 @@ function routeCallback(routeInfo) {
 
         // Visualize nearest places
         showNearestPlaces(latestRouteInfo[event.target.value]);
+
+        // Hide the details button
+        detailsBtn.style.display = "none";
       });
 
       routeInfoIndex++;
@@ -463,12 +530,13 @@ function showRouteDetails(selectedRoute, routeIndex) {
     }
 
     const megaDiv = document.createElement("div");
-    //columns with rows
     megaDiv.classList.add("row", "test")
     const firstCol = document.createElement("div");
 
-
-    // firstCol.classList.add("col-sm-1", "align-self-flex-start", "justify-content-flex-start");
+    var endArrivalTime = document.createElement("span")
+    endArrivalTime.textContent = tConvert(step["End Arrival Time"].substring(0, 2) + ":" + step["End Arrival Time"].substring(2, 4));
+    endArrivalTime.textContent = endArrivalTime.textContent.slice(0, endArrivalTime.textContent.length - 2) + " " + endArrivalTime.textContent.slice(endArrivalTime.textContent.length - 2);
+    //firstCol.classList.add(endArrivalTime.toString(), "align-self-flex-start", "d-flex");
     firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex")
     firstCol.appendChild(icon)
 
@@ -482,8 +550,9 @@ function showRouteDetails(selectedRoute, routeIndex) {
       var elip = document.createElement("i")
       elip.classList.add("ellipsis", "fa-solid", "fa-ellipsis-vertical", classToAdd)
       secondCol.appendChild(elip)
-
     }
+
+    // var pipe = "pipe"
 
     const thirdCol = document.createElement("div");
     lastThird = secondCol
@@ -499,14 +568,13 @@ function showRouteDetails(selectedRoute, routeIndex) {
     if (step["Type"] === "Walking") {
       travelDistance.textContent = step["Distance Travelled"] + " km"
     } else {
-      travelDistance.textContent = step["Time Taken"] + " min (" + step["Number Of Stops"] + " stops)"
+      travelDistance.textContent = Math.round(step["Time Taken"]) + " min (" + step["Number Of Stops"] + " stops)"
     }
 
-    //firstCol.appendChild(endArrivalTime)
+    firstCol.appendChild(endArrivalTime)
     thirdCol.appendChild(startLocation)
     thirdCol.appendChild(travelMode)
     thirdCol.appendChild(travelDistance)
-
     megaDiv.appendChild(firstCol)
     megaDiv.appendChild(secondCol)
     megaDiv.appendChild(thirdCol)
@@ -595,6 +663,3 @@ function toHoursAndMinutes(totalMinutes) {
   const minutes = Math.round(totalMinutes % 60);
   return { hours, minutes };
 }
-
-
-

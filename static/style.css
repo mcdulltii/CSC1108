@@ -182,6 +182,8 @@ button[type="submit"]:hover {
   padding: 5px 10px;
   cursor: pointer;
   margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .details-btn:hover {
@@ -223,24 +225,45 @@ button[type="submit"]:hover {
   border: none;
 }
 
-.ellipsisP101 {
+.ellipsisP101 .bus-numP101 {
   color: #FC2947;
 }
-.ellipsisP102 {
+.ellipsisP102 .bus-numP102 {
   color: #03C988
 }
-.ellipsisP106 {
+.ellipsisP106 .bus-numP106 {
   color: #820000
 }
-.ellipsisP202{
+.ellipsisP202 .bus-numP202 {
   color: #F0997D
 }
-.ellipsisP211{
+.ellipsisP211 .bus-numP211 {
   color: #B08BBB
 }
-.ellipsisP411{
+.ellipsisP411 .bus-numP411 {
   color: #5E8C88
 }
-.ellipsisP403{
+.ellipsisP403 .bus-numP403 {
   color: #674747
+}
+
+.icons-container {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bus-number {
+  margin-left: 8px;
+  padding: 2px 7px;
+  border: none;
+  border-radius: 5px;
+  color: whitesmoke;
+}
+
+.angle-right {
+  margin: 0 8px;
+  color: lightslategrey;
 }
