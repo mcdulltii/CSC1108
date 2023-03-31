@@ -137,9 +137,11 @@ class RoutingAlgo:
                 (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
             toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart["Name"]
             toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
-            toReturn["Routes"][indexOfRouteObj]["Number Of Stops"] = self._get_number_of_stops(routeObject["Pathing"],
-                                                                                               busStopStart["Name"],
-                                                                                               busStopEnd)
+            busInBetweenInfo = self._get_number_of_stops(routeObject["Pathing"],
+                                      busStopStart["Name"],
+                                      busStopEnd, busesToTake[0])
+            toReturn["Routes"][indexOfRouteObj]["Number Of Stops"] = busInBetweenInfo[0]
+            toReturn["Routes"][indexOfRouteObj]["Stops In Between"] = busInBetweenInfo[1]
             toReturn["Routes"][indexOfRouteObj]["End Arrival Time"] = timeStart
             toReturn["Routes"][indexOfRouteObj]["Time Taken"] = self._calculating_time(
                 toReturn["Routes"][indexOfRouteObj]["Bus Arrival Time"],
@@ -212,6 +214,8 @@ class RoutingAlgo:
             toReturn["Time Taken"] = ((timeConvertedEnd - timeConvertedStart).total_seconds()) / 60
             toReturn["Restaurants Nearby End"] = self._get_closest_restaurants(endingLocation)
             toReturn["Embassies Nearby End"] = self._get_closest_embassy(endingLocation)
+            toReturn["Police Stations Nearby End"]  = self._get_closest_police_stations(endingLocation)
+            toReturn["Bar Nearby End"] = self._get_closest_bar(endingLocation)
 
         returnRoutes = [toReturn]
         return returnRoutes
@@ -282,17 +286,21 @@ class RoutingAlgo:
             self.graphedData[stopName][2]["Stops Nearby"] = list(
                 set(self.graphedData[stopName][2]["Stops Nearby"]))
 
-    def _get_number_of_stops(self, path, start, end):
+    def _get_number_of_stops(self, path, start, end, bus):
+
         startRecording = False
         count = 0
+        listOfBusStops = []
         for i in path:
             if startRecording == True:
+                busObjToAppend = self._find_bus_stop_information(bus, i)
+                listOfBusStops.append({"Name": busObjToAppend["Name"], "Coordinates": busObjToAppend["GPS Location"]})
                 count += 1
             if i == start:
                 startRecording = True
             if i == end:
                 break
-        return count
+        return (count, listOfBusStops)
 
     def _find_nearest_points(self, index: int, key: list) -> None:
         prevSave = 0

@@ -32,10 +32,11 @@ class shortest_walk:
                 "Name": result["name"],
                 "Location": result["formatted_address"],
                 "Coordinates": result["geometry"]["location"],
-                "Type": keyword
+                "Type": keyword,
+                "Rating": result["rating"]
             })
-
-        return toReturn
+        toReturn = sorted(toReturn, key=lambda d: d["Rating"], reverse=True)
+        return toReturn[0:3]
 
     # haversine formula (kilometers): calculates distance between 2 points on a sphere, given longitude and latitude
     # coordinates: 1 = user location, 2 = destination location

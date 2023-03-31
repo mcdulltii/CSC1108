@@ -25,6 +25,7 @@ class Dijkstras:
                 v = min(q, key=self.distance.get)
                 q.remove(v)
                 for i in range(3, len(self.graph[v])):
+
                     # list of verticles connected to v
                     if self.graph[v][i]["Name"] in q:
                         alt = self.distance[v] + self.graph[v][i]["Time Taken"]
@@ -83,7 +84,7 @@ class Dijkstras:
         return toReturn
 
     def _check_if_xfer(self, currentBusStop):
-        if self.forBusTransferFunction == None:
+        if self.forBusTransferFunction is None:
             self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
             return False
         else:
