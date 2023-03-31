@@ -244,3 +244,7 @@ button[type="submit"]:hover {
 .ellipsisP403{
   color: #674747
 }
+
+#loading {
+  text-align: center;
+}

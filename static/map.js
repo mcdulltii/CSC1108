@@ -315,14 +315,30 @@ function showBusRoute(key, isShown) {
   }
 }
 
+function routeLoading() {
+  const directionsPanel = document.getElementById("directions-panel");
+  directionsPanel.innerHTML = "";
+  
+  const loadingDiv = document.createElement("div");
+  loadingDiv.id = "loading";
+
+  const loadingAnim = document.createElement("img");
+  loadingAnim.src = "static/images/spin.gif";
+  loadingAnim.alt = "Loading...";
+  loadingDiv.appendChild(loadingAnim);
+
+  directionsPanel.appendChild(loadingDiv);
+}
+
 function routeCallback(routeInfo) {
-  if (routeInfo.hasOwnProperty("errorCode"))
+  const directionsPanel = document.getElementById("directions-panel");
+  if (routeInfo.hasOwnProperty("errorCode")) {
+    directionsPanel.innerHTML = "";
     alert("Failed to get route!");
-  else {
+  } else {
     console.log(routeInfo);
     latestRouteInfo = routeInfo;
     routeInfoIndex = 0;
-    const directionsPanel = document.getElementById("directions-panel");
     // Retrieve routes taken
     routeInfo.forEach(shortestRoute => {
       // Create routes-box and append to directions-panel
@@ -380,7 +396,7 @@ function routeCallback(routeInfo) {
       // Create selected-route div and append to directions-panel
       const selectedRoute = document.createElement("div");
       selectedRoute.classList.add("selected-route");
-      selectedRoute.style.display = "none"
+      selectedRoute.style.display = "none";
       directionsPanel.appendChild(selectedRoute);
 
       // Add click event listener to details button
@@ -447,6 +463,7 @@ function showNearestPlaces(selectedRoute) {
 
 function showRouteDetails(selectedRoute, routeIndex) {
   selectedRoute.innerHTML = "";
+  selectedRoute.style.display = "block";
   const directionsList = document.createElement("ol");
   directionsList.classList.add("route-list")
   selectedRoute.appendChild(directionsList);
