@@ -3,6 +3,7 @@
 ## Requirements (Python3)
 
 - googlemaps
+- polyline
 - Flask
 - flask_cors
 - pandas
