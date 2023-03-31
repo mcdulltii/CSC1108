@@ -81,6 +81,7 @@ class Dijkstras:
         toReturn = {"Pathing": pathing, "Buses To Return": busesToReturn, "Transfers": transfers,
                     "Distance": distanceToReturn}
         self.toReturn = toReturn
+
         return toReturn
 
     def _check_if_xfer(self, currentBusStop):

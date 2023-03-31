@@ -64,6 +64,7 @@ class RoutingAlgo:
         startingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(startingLocation)
         endingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(endingLocation)
 
+
         startingCloseBusStop = self.walkingRouteCalculator.find_nearby(startingLocationCoords)
         startingBusStop = startingCloseBusStop[1]["Name"]
         gpsBusStopStart = startingCloseBusStop[1]["GPS Location"].split(", ")
@@ -75,6 +76,8 @@ class RoutingAlgo:
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
         timeStart = datetime.now().strftime("%H%M%S")
         timeToAdd = 0
+
+        returnRoutes = []
 
         if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) > 0.10:
             toReturn["Routes"].append(
@@ -138,8 +141,8 @@ class RoutingAlgo:
             toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart["Name"]
             toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
             busInBetweenInfo = self._get_number_of_stops(routeObject["Pathing"],
-                                      busStopStart["Name"],
-                                      busStopEnd, busesToTake[0])
+                                                         busStopStart["Name"],
+                                                         busStopEnd, busesToTake[0])
             toReturn["Routes"][indexOfRouteObj]["Number Of Stops"] = busInBetweenInfo[0]
             toReturn["Routes"][indexOfRouteObj]["Stops In Between"] = busInBetweenInfo[1]
             toReturn["Routes"][indexOfRouteObj]["End Arrival Time"] = timeStart
@@ -214,10 +217,33 @@ class RoutingAlgo:
             toReturn["Time Taken"] = ((timeConvertedEnd - timeConvertedStart).total_seconds()) / 60
             toReturn["Restaurants Nearby End"] = self._get_closest_restaurants(endingLocation)
             toReturn["Embassies Nearby End"] = self._get_closest_embassy(endingLocation)
-            toReturn["Police Stations Nearby End"]  = self._get_closest_police_stations(endingLocation)
+            toReturn["Police Stations Nearby End"] = self._get_closest_police_stations(endingLocation)
             toReturn["Bar Nearby End"] = self._get_closest_bar(endingLocation)
 
-        returnRoutes = [toReturn]
+        returnRoutes.append(toReturn)
+
+        # Walking Route if below certain
+        if self._calculate_relative_distance(startingLocationCoords, endingLocationCoords) < 2.5:
+            walkingObj = self.walkingRouteCalculator.get_walking_route(startingLocationCoords, endingLocationCoords)
+            toReturnWalking = {"Time Start": datetime.now().strftime("%H%M%S"),
+                               "Time End": self._calculating_time(datetime.now().strftime("%H%M%S"), walkingObj[2], 1),
+                               "Time Taken": walkingObj[2], "Routes": [
+                    {
+                        "Route": [{'lat': i[0], 'lng': i[1]} for i in walkingObj[0]],
+                        "Type": "Walking",
+                        "Start Arrival Time": datetime.now().strftime("%H%M%S"),
+                        "End Arrival Time": self._calculating_time(datetime.now().strftime("%H%M%S"), walkingObj[2], 1),
+                        "Start": startingLocation,
+                        "End": endingLocation,
+                        "Distance Travelled": walkingObj[1],
+                        "Time Taken": walkingObj[2]
+
+                    }
+                ], "Restaurants Nearby End": self._get_closest_restaurants(endingLocation),
+                               "Embassies Nearby End": self._get_closest_embassy(endingLocation),
+                               "Police Stations Nearby End": self._get_closest_police_stations(endingLocation),
+                               "Bar Nearby End": self._get_closest_bar(endingLocation)}
+            returnRoutes.append(toReturnWalking)
         return returnRoutes
 
     def _load_bus_stops(self) -> None:
@@ -287,7 +313,6 @@ class RoutingAlgo:
                 set(self.graphedData[stopName][2]["Stops Nearby"]))
 
     def _get_number_of_stops(self, path, start, end, bus):
-
         startRecording = False
         count = 0
         listOfBusStops = []
@@ -300,7 +325,7 @@ class RoutingAlgo:
                 startRecording = True
             if i == end:
                 break
-        return (count, listOfBusStops)
+        return count, listOfBusStops
 
     def _find_nearest_points(self, index: int, key: list) -> None:
         prevSave = 0
@@ -452,6 +477,7 @@ class RoutingAlgo:
         if (addorminus == 3):
             toReturnTime = (datetime.strptime(operandInMinutes, "%H%M%S") - datetime.strptime(startingTime,
                                                                                               "%H%M%S")).total_seconds() / 60
+
         else:
             toReturnTime = (datetime.strptime(startingTime, "%H%M%S") + timedelta(
                 minutes=operandInMinutes)).strftime("%H%M%S")
@@ -463,7 +489,7 @@ def main():
     # routes.walkingRouteCalculator.find_nearest_restaurants("Larkin Terminal")
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
-    pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia","Jalan Stulang Laut, Johor Bahru,JHR,Malaysia"))  # one of the furthest routes
+    pp.pprint(routes.get_route("Majilis Bandaraya Johor Bahru", "AEON Tebrau City"))  # one of the furthest routes
     # P403-loop -> P211-01 -> P101-loop -> P102-02 -> P102-01
     # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia", "Jalan Stulang Baru, Johor Bahru,JHR,Malaysia")) #example 2
     # pp.pprint(routes.get_route("Taman Universiti", "Johor Islamic Complex")) #Single xfer
