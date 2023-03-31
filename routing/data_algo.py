@@ -210,6 +210,9 @@ class RoutingAlgo:
             timeConvertedEnd = datetime.strptime(toReturn["Time End"], "%H%M%S")
             timeConvertedStart = datetime.strptime(toReturn["Time Start"], "%H%M%S")
             toReturn["Time Taken"] = ((timeConvertedEnd - timeConvertedStart).total_seconds()) / 60
+            toReturn["Restaurants Nearby End"] = self._get_closest_restaurants(endingLocation)
+            toReturn["Embassies Nearby End"] = self._get_closest_embassy(endingLocation)
+
         returnRoutes = [toReturn]
         return returnRoutes
 
