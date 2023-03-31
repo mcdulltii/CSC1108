@@ -31,7 +31,8 @@ class shortest_walk:
             toReturn.append({
                 "Name": result["name"],
                 "Location": result["formatted_address"],
-                "Coordinates": result["geometry"]["location"]
+                "Coordinates": result["geometry"]["location"],
+                "Type": keyword
             })
 
         return toReturn
