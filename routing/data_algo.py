@@ -66,12 +66,14 @@ class RoutingAlgo:
         endingCloseBusStop[0] = endingCloseBusStop[0][::-1]
         endingBusStop = endingCloseBusStop[1]["Name"]
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
+        routeAlgorithms = ["Dijkstra", "AStar"]
         routeObjects = [self.DijkstrasrouteCalculator.calculate_route(startingBusStop, endingBusStop), self.AStarrouteCalculator.calculate_route(startingBusStop, endingBusStop)]
         returnRoutes = []
 
-        for routeObject in routeObjects:
+        for routeObjectIndex, routeObject in enumerate(routeObjects):
             toReturn = {
-                "Routes": []
+                "Routes": [],
+                "Algorithm": routeAlgorithms[routeObjectIndex],
             }
             timeStart = "095511"
             timeToAdd = 0
@@ -326,17 +328,16 @@ class RoutingAlgo:
                 set(self.forwardGraphedData[stopName][2]["Stops Nearby"]))
 
     def _get_number_of_stops(self, path, start, end, bus):
-
         startRecording = False
         count = 0
         listOfBusStops = []
         for i in path:
+            if i == start:
+                startRecording = True
             if startRecording == True:
                 busObjToAppend = self._find_bus_stop_information(bus, i)
                 listOfBusStops.append({"Name": busObjToAppend["Name"], "Coordinates": busObjToAppend["GPS Location"]})
                 count += 1
-            if i == start:
-                startRecording = True
             if i == end:
                 break
         return (count, listOfBusStops)
