@@ -13,6 +13,7 @@ class Dijkstras:
         self.graph = graph
 
     def calculate_route(self, end: str, start: str):
+        self.forBusTransferFunction = None
         if self.startingForToReturn != start:
             self.startingForToReturn = start
             q = []

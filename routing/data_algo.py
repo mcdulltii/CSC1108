@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 sys.path.append('../CSC1108')
 from routes_reader.routes_reader import RoutesReader
 from routing.dijkstras import Dijkstras
+from routing.AStarAlgo import AStar
 from routing.shortest_walk import shortest_walk
 from collections import deque
 
@@ -24,7 +25,8 @@ class RoutingAlgo:
     routes_reader = None
     routeCalculator = None
     walkingRouteCalculator = None
-    graphedData = {}
+    backwardGraphedData = {}
+    forwardGraphedData = {}
     parsedData = {}
     frequencyData = {}
 
@@ -45,21 +47,12 @@ class RoutingAlgo:
         self.walkingRouteCalculator = shortest_walk(self.parsedData)
 
         self._populate_routes_information()
-        self.routeCalculator = Dijkstras(self.graphedData)
+        self.DijkstrasrouteCalculator = Dijkstras(self.backwardGraphedData)
+        self.AStarrouteCalculator = AStar(self.forwardGraphedData)
 
     def get_route(self, startingLocation: str, endingLocation: str) -> List[Dict[str, List[Any]]]:
-        '''
-        {
-            Starting Bus Stop: startBusStop,
-            Ending Bus Stop: endBusStop,
-            Buses To Take: listOfBusesToTake, if there is more than 1 means there's a transfer,
-            Route Taken: {Bus number: [list of routes...], Bus number 2: [list of routes....],
-            Distance Travelled (KM) : distance travelled
-        }
-        '''
-        toReturn = {
-            "Routes": []
-        }
+
+
         # GET COORDINATES FROM STRING GEOCODING
         startingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(startingLocation)
         endingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(endingLocation)
@@ -74,146 +67,149 @@ class RoutingAlgo:
         endingCloseBusStop[0] = endingCloseBusStop[0][::-1]
         endingBusStop = endingCloseBusStop[1]["Name"]
         gpsBusStopEnd = endingCloseBusStop[1]["GPS Location"].split(", ")
-        #timeStart = datetime.now().strftime("%H%M%S")
-        timeStart = "091519"
-        timeToAdd = 0
-
+        routeObjects = [self.DijkstrasrouteCalculator.calculate_route(startingBusStop, endingBusStop), self.AStarrouteCalculator.calculate_route(startingBusStop, endingBusStop)]
         returnRoutes = []
 
-        if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) > 0.10:
-            toReturn["Routes"].append(
-                {
-                    "Route": [{'lat': i[0], 'lng': i[1]} for i in startingCloseBusStop[0]],
-                    "Type": "Walking",
-                    "Start": startingLocation,
-                    "End": startingBusStop,
+        for routeObject in routeObjects:
+            toReturn = {
+                "Routes": []
+            }
+            print(routeObject)
+            timeStart = "095511"
+            timeToAdd = 0
+            timeTravelling = routeObject["Distance"]
+
+            if self._calculate_relative_distance(startingLocationCoords, gpsBusStopStart) > 0.10:
+                toReturn["Routes"].append(
+                    {
+                        "Route": [{'lat': i[0], 'lng': i[1]} for i in startingCloseBusStop[0]],
+                        "Type": "Walking",
+                        "Start": startingLocation,
+                        "End": startingBusStop,
+                        "Start Arrival Time": timeStart,
+                        "Distance Travelled": startingCloseBusStop[2],
+                        "Time Taken": startingCloseBusStop[3]
+                    }
+
+                )
+                timeStart = self._calculating_time(timeStart, startingCloseBusStop[3], 1)
+                timeTravelling += startingCloseBusStop[3]
+                timeToAdd += startingCloseBusStop[3]
+                toReturn["Routes"][0]["End Arrival Time"] = timeStart
+
+            busStopStart = routeObject["Pathing"][0]
+            toReturn["Time Start"] = timeStart
+            transfers = deque()
+            for transfer in routeObject["Transfers"]:
+                transfers.append(transfer)
+            for busesToTake in routeObject["Buses To Return"]:
+                timeToCatch = self._find_nearest_arrival_time(busesToTake[0], busStopStart, timeStart)
+                toReturn["Routes"].append({
+                    "Type": busesToTake[0],
+                    "Route": [],
                     "Start Arrival Time": timeStart,
-                    "Distance Travelled": startingCloseBusStop[2],
-                    "Time Taken": startingCloseBusStop[3]
-                }
-            )
-        routeObject = self.routeCalculator.calculate_route(startingBusStop, endingBusStop)
-        timeStart = self._calculating_time(timeStart, startingCloseBusStop[3], 1)
-        timeTravelling = routeObject["Distance"]
-
-        timeToAdd += startingCloseBusStop[3]
-        timeTravelling += startingCloseBusStop[3]
-
-        toReturn["Routes"][0]["End Arrival Time"] = timeStart
-        busStopStart = routeObject["Pathing"][0]
-
-        toReturn["Time Start"] = timeStart
-        transfers = deque()
-        for transfer in routeObject["Transfers"]:
-            transfers.append(transfer)
-        for busesToTake in routeObject["Buses To Return"]:
-            timeToCatch = self._find_nearest_arrival_time(busesToTake[0], busStopStart, timeStart)
-            toReturn["Routes"].append({
-                "Type": busesToTake[0],
-                "Route": [],
-                "Start Arrival Time": timeStart,
-                "Bus Arrival Time": timeToCatch
-            })
-            transferObject = None
-            if len(transfers) != 0:
-                transferObject = transfers.popleft()
-            timeStart = timeToCatch
-            busStopStart = self._find_bus_stop_information(busesToTake[0], busStopStart)
-            busPointToCheck = busStopStart["Closest Point"]
-            if transferObject is not None:
-                if transferObject["Type"] == "Walking":
-                    busStopEnd = transferObject["Transfer Stop From"]
-                    timeStart = self._calculating_time(timeStart, transferObject["Time Taken for Bus"], 1)
-                    timeToAdd += transferObject["Time Taken for Bus"]
+                    "Bus Arrival Time": timeToCatch
+                })
+                transferObject = None
+                if len(transfers) != 0:
+                    transferObject = transfers.popleft()
+                timeStart = timeToCatch
+                busStopStart = self._find_bus_stop_information(busesToTake[0], busStopStart)
+                busPointToCheck = busStopStart["Closest Point"]
+                if transferObject is not None:
+                    if transferObject["Type"] == "Walking":
+                        busStopEnd = transferObject["Transfer Stop From"]
+                        timeStart = self._calculating_time(timeStart, transferObject["Time Taken for Bus"], 1)
+                        timeToAdd += transferObject["Time Taken for Bus"]
+                    else:
+                        busStopEnd = transferObject["Transfer Stop"]
+                        timeStart = self._calculating_time(timeStart, transferObject["Time Taken"], 1)
+                        timeToAdd += transferObject["Time Taken"]
                 else:
-                    busStopEnd = transferObject["Transfer Stop"]
-                    timeStart = self._calculating_time(timeStart, transferObject["Time Taken"], 1)
-                    timeToAdd += transferObject["Time Taken"]
-            else:
-                timeStart = self._calculating_time(timeStart, (timeTravelling - timeToAdd), 1)
-                busStopEnd = routeObject["Pathing"][-1]
-            busStopEndInfo = self._find_bus_stop_information(busesToTake[0], busStopEnd)
-            busPointEnd = busStopEndInfo["Closest Point"]
-            indexOf = list(self.parsedData.keys()).index(busesToTake[0])
-            correspondingMapBoxKey = list(self.mapBoxScrap.keys())[indexOf]
-            pointIterator = 0
+                    timeStart = self._calculating_time(timeStart, (timeTravelling - timeToAdd), 1)
+                    busStopEnd = routeObject["Pathing"][-1]
+                busStopEndInfo = self._find_bus_stop_information(busesToTake[0], busStopEnd)
+                busPointEnd = busStopEndInfo["Closest Point"]
+                indexOf = list(self.parsedData.keys()).index(busesToTake[0])
+                correspondingMapBoxKey = list(self.mapBoxScrap.keys())[indexOf]
+                pointIterator = 0
 
-            indexOfRouteObj = next(
-                (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
-            toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart["Name"]
-            toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
-            busInBetweenInfo = self._get_number_of_stops(routeObject["Pathing"],
-                                                         busStopStart["Name"],
-                                                         busStopEnd, busesToTake[0])
-            toReturn["Routes"][indexOfRouteObj]["Number Of Stops"] = busInBetweenInfo[0]
-            toReturn["Routes"][indexOfRouteObj]["Stops In Between"] = busInBetweenInfo[1]
-            toReturn["Routes"][indexOfRouteObj]["End Arrival Time"] = timeStart
-            toReturn["Routes"][indexOfRouteObj]["Time Taken"] = self._calculating_time(
-                toReturn["Routes"][indexOfRouteObj]["Bus Arrival Time"],
-                toReturn["Routes"][indexOfRouteObj]["End Arrival Time"], 3)
+                indexOfRouteObj = next(
+                    (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
+                toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart["Name"]
+                toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
+                busInBetweenInfo = self._get_number_of_stops(routeObject["Pathing"],
+                                                             busStopStart["Name"],
+                                                             busStopEnd, busesToTake[0])
+                toReturn["Routes"][indexOfRouteObj]["Number Of Stops"] = busInBetweenInfo[0]
+                toReturn["Routes"][indexOfRouteObj]["Stops In Between"] = busInBetweenInfo[1]
+                toReturn["Routes"][indexOfRouteObj]["End Arrival Time"] = timeStart
+                toReturn["Routes"][indexOfRouteObj]["Time Taken"] = self._calculating_time(
+                    toReturn["Routes"][indexOfRouteObj]["Bus Arrival Time"],
+                    toReturn["Routes"][indexOfRouteObj]["End Arrival Time"], 3)
 
-            startRecording = False
-            while True:
-                point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
-                if point == busPointToCheck:
-                    # print("MATCH")
-                    startRecording = True
-                if startRecording:
-                    toReturn["Routes"][indexOfRouteObj]["Route"].append({'lat': point[1], 'lng': point[0]})
-                if point == busPointEnd and startRecording:
-                    if transferObject is not None:
-                        if transferObject["Type"] == "Walking":
-                            busStopStart = transferObject["Transfer Stop To"]  # to bus stop so coordinates end
-                            nextBus = routeObject["Buses To Return"][
-                                routeObject["Buses To Return"].index(busesToTake) + 1]
-                            busInformationForFrom = self._find_bus_stop_information(busesToTake[0], transferObject[
-                                "Transfer Stop From"])
-                            busInformationForTo = self._find_bus_stop_information(nextBus[0], busStopStart)
-                            coordinatesStart = [float(x) for x in busInformationForFrom["GPS Location"].split(", ")]
-                            coordinatesEnd = [float(x) for x in busInformationForTo["GPS Location"].split(", ")]
-                            returnWalkingRouteCalc = self.walkingRouteCalculator.get_walking_route(coordinatesStart,
-                                                                                                   coordinatesEnd)
-                            toReturn["Routes"].append({
-                                "Route": [{'lat': i[0], 'lng': i[1]} for i in
-                                          returnWalkingRouteCalc[0]],
-                                "Type": "Walking",
-                                "Start": transferObject["Transfer Stop From"],
-                                "End": busStopStart,
-                                "Time Taken": returnWalkingRouteCalc[2],
-                                "Start Arrival Time": timeStart,
-                                "Distance Travelled": returnWalkingRouteCalc[1]
-                            })
-                            timeToAdd += returnWalkingRouteCalc[2]
-                            timeTravelling += returnWalkingRouteCalc[2]
+                startRecording = False
+                while True:
+                    point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
+                    if point == busPointToCheck:
+                        # print("MATCH")
+                        startRecording = True
+                    if startRecording:
+                        toReturn["Routes"][indexOfRouteObj]["Route"].append({'lat': point[1], 'lng': point[0]})
+                    if point == busPointEnd and startRecording:
+                        if transferObject is not None:
+                            if transferObject["Type"] == "Walking":
+                                busStopStart = transferObject["Transfer Stop To"]  # to bus stop so coordinates end
+                                nextBus = routeObject["Buses To Return"][
+                                    routeObject["Buses To Return"].index(busesToTake) + 1]
+                                busInformationForFrom = self._find_bus_stop_information(busesToTake[0], transferObject[
+                                    "Transfer Stop From"])
+                                busInformationForTo = self._find_bus_stop_information(nextBus[0], busStopStart)
+                                coordinatesStart = [float(x) for x in busInformationForFrom["GPS Location"].split(", ")]
+                                coordinatesEnd = [float(x) for x in busInformationForTo["GPS Location"].split(", ")]
+                                returnWalkingRouteCalc = self.walkingRouteCalculator.get_walking_route(coordinatesStart,
+                                                                                                       coordinatesEnd)
+                                toReturn["Routes"].append({
+                                    "Route": [{'lat': i[0], 'lng': i[1]} for i in
+                                              returnWalkingRouteCalc[0]],
+                                    "Type": "Walking",
+                                    "Start": transferObject["Transfer Stop From"],
+                                    "End": busStopStart,
+                                    "Time Taken": returnWalkingRouteCalc[2],
+                                    "Start Arrival Time": timeStart,
+                                    "Distance Travelled": returnWalkingRouteCalc[1]
+                                })
+                                timeToAdd += returnWalkingRouteCalc[2]
+                                timeTravelling += returnWalkingRouteCalc[2]
 
-                            timeStart = self._calculating_time(timeStart, returnWalkingRouteCalc[2], 1)
-                            toReturn["Routes"][indexOfRouteObj + 1]["End Arrival Time"] = timeStart
-                        else:
-                            busStopStart = transferObject["Transfer Stop"]
-                    break
-                pointIterator += 1
+                                timeStart = self._calculating_time(timeStart, returnWalkingRouteCalc[2], 1)
+                                toReturn["Routes"][indexOfRouteObj + 1]["End Arrival Time"] = timeStart
+                            else:
+                                busStopStart = transferObject["Transfer Stop"]
+                        break
+                    pointIterator += 1
 
-                if pointIterator == len(self.mapBoxScrap[correspondingMapBoxKey]):
-                    pointIterator = 0
-        if self._calculate_relative_distance(endingLocationCoords,
-                                             gpsBusStopEnd) > 0.10:
-            endingCloseBusStop[0].insert(0, list(map(float, gpsBusStopEnd)))
-            endingCloseBusStop[0].append(endingLocationCoords)
-            toReturn["Routes"].append(
-                {
-                    "Route": [{'lat': i[0], 'lng': i[1]} for i in endingCloseBusStop[0]],
-                    "Type": "Walking",
-                    "Start Arrival Time": timeStart,
-                    "Start": endingBusStop,
-                    "End": endingLocation,
-                    "Distance Travelled": endingCloseBusStop[2],
-                    "Time Taken": endingCloseBusStop[3]
-                }
-            )
-            timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
-                minutes=endingCloseBusStop[3])).strftime("%H%M%S")
-            toReturn["Routes"][-1]["End Arrival Time"] = timeStart
-            toReturn["Time End"] = timeStart
+                    if pointIterator == len(self.mapBoxScrap[correspondingMapBoxKey]):
+                        pointIterator = 0
+            if self._calculate_relative_distance(endingLocationCoords,
+                                                 gpsBusStopEnd) > 0.10:
+                endingCloseBusStop[0].insert(0, list(map(float, gpsBusStopEnd)))
+                endingCloseBusStop[0].append(endingLocationCoords)
+                toReturn["Routes"].append(
+                    {
+                        "Route": [{'lat': i[0], 'lng': i[1]} for i in endingCloseBusStop[0]],
+                        "Type": "Walking",
+                        "Start Arrival Time": timeStart,
+                        "Start": endingBusStop,
+                        "End": endingLocation,
+                        "Distance Travelled": endingCloseBusStop[2],
+                        "Time Taken": endingCloseBusStop[3]
+                    }
+                )
+                timeStart = (datetime.strptime(timeStart, "%H%M%S") + timedelta(
+                    minutes=endingCloseBusStop[3])).strftime("%H%M%S")
+                toReturn["Routes"][-1]["End Arrival Time"] = timeStart
+                toReturn["Time End"] = timeStart
             timeConvertedEnd = datetime.strptime(toReturn["Time End"], "%H%M%S")
             timeConvertedStart = datetime.strptime(toReturn["Time Start"], "%H%M%S")
             toReturn["Time Taken"] = ((timeConvertedEnd - timeConvertedStart).total_seconds()) / 60
@@ -222,30 +218,8 @@ class RoutingAlgo:
             toReturn["Police Stations Nearby End"] = self._get_closest_police_stations(endingLocation)
             toReturn["Bar Nearby End"] = self._get_closest_bar(endingLocation)
 
-        returnRoutes.append(toReturn)
+            returnRoutes.append(toReturn)
 
-        # Walking Route if below certain
-        if self._calculate_relative_distance(startingLocationCoords, endingLocationCoords) < 2.5:
-            walkingObj = self.walkingRouteCalculator.get_walking_route(startingLocationCoords, endingLocationCoords)
-            toReturnWalking = {"Time Start": datetime.now().strftime("%H%M%S"),
-                               "Time End": self._calculating_time(datetime.now().strftime("%H%M%S"), walkingObj[2], 1),
-                               "Time Taken": walkingObj[2], "Routes": [
-                    {
-                        "Route": [{'lat': i[0], 'lng': i[1]} for i in walkingObj[0]],
-                        "Type": "Walking",
-                        "Start Arrival Time": datetime.now().strftime("%H%M%S"),
-                        "End Arrival Time": self._calculating_time(datetime.now().strftime("%H%M%S"), walkingObj[2], 1),
-                        "Start": startingLocation,
-                        "End": endingLocation,
-                        "Distance Travelled": walkingObj[1],
-                        "Time Taken": walkingObj[2]
-
-                    }
-                ], "Restaurants Nearby End": self._get_closest_restaurants(endingLocation),
-                               "Embassies Nearby End": self._get_closest_embassy(endingLocation),
-                               "Police Stations Nearby End": self._get_closest_police_stations(endingLocation),
-                               "Bar Nearby End": self._get_closest_bar(endingLocation)}
-            returnRoutes.append(toReturnWalking)
         return returnRoutes
 
     def _load_bus_stops(self) -> None:
@@ -261,7 +235,8 @@ class RoutingAlgo:
                         "GPS Location": stop["GPS Location"]
                     }
                 )
-                self.graphedData[stop["Bus stop"]] = []
+                self.backwardGraphedData[stop["Bus stop"]] = []
+                self.forwardGraphedData[stop["Bus stop"]] = []
 
             key = list(self.parsedData.keys())[i]
 
@@ -273,20 +248,41 @@ class RoutingAlgo:
             self._get_arrival_time(i, key)
 
     def _populate_routes_information(self) -> None:
-        for stopName in self.graphedData.keys():
+        for stopName in self.forwardGraphedData.keys():
+            self.forwardGraphedData[stopName].append({"Buses Supported": []})
+            self.forwardGraphedData[stopName].append({"Close Point": []})
+            self.forwardGraphedData[stopName].append({"Stops Nearby": []})
+
+            for i in self.parsedData.keys():
+                for d in range(0, len(self.parsedData[i])):
+                    if stopName == self.parsedData[i][d]["Name"]:
+                        self.forwardGraphedData[stopName][0]["Buses Supported"].append(i)
+                        self.forwardGraphedData[stopName][1]["Close Point"].append(
+                            self.parsedData[i][d]["Closest Point"])
+                        if d != len(self.parsedData[i]) -1:
+                            self.forwardGraphedData[stopName].append({
+                                "Name": self.parsedData[i][d + 1]["Name"],
+                                "Bus": i,
+                                "Distance Away": float(self.parsedData[i][d]["Distance to Next"]),
+                                "Time Taken": float(self.parsedData[i][d]["Time Taken"])
+                            })
+                        break
+
+        for stopName in self.backwardGraphedData.keys():
             # Initialize arrays
-            self.graphedData[stopName].append({"Buses Supported": []})
-            self.graphedData[stopName].append({"Close Point": []})
-            self.graphedData[stopName].append({"Stops Nearby": []})
+            self.backwardGraphedData[stopName].append({"Buses Supported": []})
+            self.backwardGraphedData[stopName].append({"Close Point": []})
+            self.backwardGraphedData[stopName].append({"Stops Nearby": []})
 
             # Append routes information into return data
             for i in self.parsedData.keys():
                 for d in range(len(self.parsedData[i]) - 1, -1, -1):
                     if stopName == self.parsedData[i][d]["Name"]:
-                        self.graphedData[stopName][0]["Buses Supported"].append(i)
-                        self.graphedData[stopName][1]["Close Point"].append(self.parsedData[i][d]["Closest Point"])
+                        self.backwardGraphedData[stopName][0]["Buses Supported"].append(i)
+                        self.backwardGraphedData[stopName][1]["Close Point"].append(
+                            self.parsedData[i][d]["Closest Point"])
                         if d >= 1:
-                            self.graphedData[stopName].append({
+                            self.backwardGraphedData[stopName].append({
                                 "Name": self.parsedData[i][d - 1]["Name"],
                                 "Bus": i,
                                 "Distance Away": float(self.parsedData[i][d - 1]["Distance to Next"]),
@@ -294,11 +290,17 @@ class RoutingAlgo:
                             })
                         break
 
-            # Sanitize data
-            self.graphedData[stopName][0]["Buses Supported"] = list(
-                set(self.graphedData[stopName][0]["Buses Supported"]))
-            self.graphedData[stopName][1]["Close Point"] = list(
-                {tuple(x) for x in self.graphedData[stopName][1]["Close Point"]})
+            for a in self.parsedData.keys():
+                for d in self.parsedData[a]:
+                    # Check for minimum distance between bus route point and bus stop
+                    if self._calculate_relative_distance(
+                            [d["Closest Point"][1], d["Closest Point"][0]],
+                            [
+                                self.forwardGraphedData[stopName][1]["Close Point"][0][1],
+                                self.forwardGraphedData[stopName][1]["Close Point"][0][0]
+                            ]
+                    ) < 0.15 and d["Name"] != stopName:
+                        self.forwardGraphedData[stopName][2]["Stops Nearby"].append(d["Name"])
 
             for a in self.parsedData.keys():
                 for d in self.parsedData[a]:
@@ -306,13 +308,25 @@ class RoutingAlgo:
                     if self._calculate_relative_distance(
                             [d["Closest Point"][1], d["Closest Point"][0]],
                             [
-                                self.graphedData[stopName][1]["Close Point"][0][1],
-                                self.graphedData[stopName][1]["Close Point"][0][0]
+                                self.backwardGraphedData[stopName][1]["Close Point"][0][1],
+                                self.backwardGraphedData[stopName][1]["Close Point"][0][0]
                             ]
                     ) < 0.15 and d["Name"] != stopName:
-                        self.graphedData[stopName][2]["Stops Nearby"].append(d["Name"])
-            self.graphedData[stopName][2]["Stops Nearby"] = list(
-                set(self.graphedData[stopName][2]["Stops Nearby"]))
+                        self.backwardGraphedData[stopName][2]["Stops Nearby"].append(d["Name"])
+            # Sanitize data
+            self.backwardGraphedData[stopName][0]["Buses Supported"] = list(
+                set(self.backwardGraphedData[stopName][0]["Buses Supported"]))
+            self.backwardGraphedData[stopName][1]["Close Point"] = list(
+                {tuple(x) for x in self.backwardGraphedData[stopName][1]["Close Point"]})
+            self.backwardGraphedData[stopName][2]["Stops Nearby"] = list(
+                set(self.backwardGraphedData[stopName][2]["Stops Nearby"]))
+
+            self.forwardGraphedData[stopName][0]["Buses Supported"] = list(
+                set(self.forwardGraphedData[stopName][0]["Buses Supported"]))
+            self.forwardGraphedData[stopName][1]["Close Point"] = list(
+                {tuple(x) for x in self.forwardGraphedData[stopName][1]["Close Point"]})
+            self.forwardGraphedData[stopName][2]["Stops Nearby"] = list(
+                set(self.forwardGraphedData[stopName][2]["Stops Nearby"]))
 
     def _get_number_of_stops(self, path, start, end, bus):
         startRecording = False
@@ -434,7 +448,9 @@ class RoutingAlgo:
         indexOfBusStop = next(
             (index for (index, d) in enumerate(self.parsedData[busServiceForRoute]) if
              d["Name"] == busStopName), None)
-
+        print(busStopName)
+        print(busServiceForRoute)
+        print(indexOfBusStop)
         busStopToReturn = self.parsedData[busServiceForRoute][indexOfBusStop]
         return busStopToReturn
 
@@ -491,7 +507,7 @@ def main():
     # routes.walkingRouteCalculator.find_nearest_restaurants("Larkin Terminal")
 
     # ---------- TESTING SCENARIOS, FEEL FREE TO ADD MORE --------------
-    pp.pprint(routes.get_route("Majilis Bandaraya Johor Bahru", "AEON Tebrau City"))  # one of the furthest routes
+    pp.pprint(routes.get_route("AEON Tebrau City", "Senai Airport"))  # one of the furthest routes
     # P403-loop -> P211-01 -> P101-loop -> P102-02 -> P102-01
     # pp.pprint(routes.get_route("Jalan Kampung Maju Jaya, Senai,JHR,Malaysia", "Jalan Stulang Baru, Johor Bahru,JHR,Malaysia")) #example 2
     # pp.pprint(routes.get_route("Taman Universiti", "Johor Islamic Complex")) #Single xfer
