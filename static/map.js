@@ -481,7 +481,7 @@ function routeCallback(routeInfo) {
       // Create details button and append to routes-box
       const detailsBtn = document.createElement("button");
       detailsBtn.classList.add("details-btn");
-      detailsBtn.textContent = "Details";
+      detailsBtn.textContent = shortestRoute["Algorithm"] + " Details";
       detailsBtn.value = routeInfoIndex;
 
       // Only show details button for first route
