@@ -57,7 +57,6 @@ class RoutingAlgo:
         startingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(startingLocation)
         endingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(endingLocation)
 
-
         startingCloseBusStop = self.walkingRouteCalculator.find_nearby(startingLocationCoords)
         startingBusStop = startingCloseBusStop[1]["Name"]
         gpsBusStopStart = startingCloseBusStop[1]["GPS Location"].split(", ")
@@ -329,6 +328,7 @@ class RoutingAlgo:
                 set(self.forwardGraphedData[stopName][2]["Stops Nearby"]))
 
     def _get_number_of_stops(self, path, start, end, bus):
+
         startRecording = False
         count = 0
         listOfBusStops = []
@@ -341,7 +341,7 @@ class RoutingAlgo:
                 startRecording = True
             if i == end:
                 break
-        return count, listOfBusStops
+        return (count, listOfBusStops)
 
     def _find_nearest_points(self, index: int, key: list) -> None:
         prevSave = 0
@@ -495,7 +495,6 @@ class RoutingAlgo:
         if (addorminus == 3):
             toReturnTime = (datetime.strptime(operandInMinutes, "%H%M%S") - datetime.strptime(startingTime,
                                                                                               "%H%M%S")).total_seconds() / 60
-
         else:
             toReturnTime = (datetime.strptime(startingTime, "%H%M%S") + timedelta(
                 minutes=operandInMinutes)).strftime("%H%M%S")
