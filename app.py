@@ -3,6 +3,7 @@ from flask import Flask, jsonify, render_template, request
 from dotenv import load_dotenv
 import pickle
 import argparse
+import time
 import os
 
 import logging
@@ -46,7 +47,11 @@ def get_ori_dest():
     destination = request.form['destination']
     logger.info(f'{origin=}, {destination=}')
     try:
-        return jsonify(routing.get_route(origin, destination))
+        start = time.time()
+        route = routing.get_route(origin, destination)
+        end = time.time()
+        logging.info(f"Route retrieved in {end - start} seconds")
+        return jsonify(route)
     except:
         return invalid_page('Failed to get shortest route')
 
