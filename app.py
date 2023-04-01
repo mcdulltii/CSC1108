@@ -27,7 +27,8 @@ args = parser.parse_args()
 def main():
     return render_template('index.html',
                            api_key=os.getenv('API_KEY'),
-                           bus_selection=routes.keys() if routes is not None else None)
+                           bus_selection=routes.keys() if routes is not None
+                           else ['P101_1', 'P102_1', 'P102_2', 'P106_1', 'P202_1', 'P211_1', 'P211_2', 'P411_1', 'P411_2', 'P403_1'])
 
 
 @app.route('/route/<bus_number>/<int:direction>')
@@ -35,7 +36,7 @@ def get_routes(bus_number, direction):
     key = f'{bus_number}_{direction}'
     if routes is None or key not in routes.keys():
         return invalid_page('Invalid bus route')
-    return jsonify({key: [{'lat': i[1],'lng': i[0]} for i in routes[key]]})
+    return jsonify({key: [{'lat': i[1], 'lng': i[0]} for i in routes[key]]})
 
 
 @app.route('/form-ori-dest', methods=["POST"])
