@@ -52,9 +52,7 @@ class RoutingAlgo:
 
     def get_route(self, startingLocation: str, endingLocation: str) -> List[Dict[str, List[Any]]]:
 
-        toReturn = {
-            "Routes": []
-        }
+
         # GET COORDINATES FROM STRING GEOCODING
         startingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(startingLocation)
         endingLocationCoords = self.walkingRouteCalculator.string_to_coordinate(endingLocation)
@@ -72,6 +70,9 @@ class RoutingAlgo:
         returnRoutes = []
 
         for routeObject in routeObjects:
+            toReturn = {
+                "Routes": []
+            }
             print(routeObject)
             timeStart = "095511"
             timeToAdd = 0
