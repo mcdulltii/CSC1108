@@ -27,17 +27,18 @@ class BusFreqScraper:
             # Retrieve bus frequency table
             table_data = content.find_all('table')[2]
             # Store bus frequencies
-            table_freq_arr = table_data.find_all('td', style=lambda x: 'width: 65%' in x)
+            table_freq_arr = table_data.find_all(
+                'td', style=lambda x: 'width: 65%' in x)
             for table_freq in table_freq_arr:
                 bus_freq = [each.text for each in table_freq.find_all('div')]
                 if query not in bus_freq_dict.keys():
                     bus_freq_dict[query] = []
                 bus_freq_dict[query].append({
-                                    'Start': bus_freq[0],
-                                    'Intervals': [int(j) - int(i) for i, j in zip(bus_freq, bus_freq[1:])],
-                                    'Frequency': bus_freq
-                                })
-        
+                    'Start': bus_freq[0],
+                    'Intervals': [int(j) - int(i) for i, j in zip(bus_freq, bus_freq[1:])],
+                    'Frequency': bus_freq
+                })
+
         # Return dictionary of bus number to bus frequencies
         return bus_freq_dict
 

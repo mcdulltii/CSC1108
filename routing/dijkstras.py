@@ -49,30 +49,33 @@ class Dijkstras:
         busTaking = None
         busesToReturn = []
         transfers = []
-        walkingTransfer = False;
+        walkingTransfer = False
         distanceToReturn = self.distance[end]
         while nextBusStop != start:
             currentBusStop = nextBusStop
             nextBusStop = self.prev[currentBusStop]
             for closeBusStop in self.graph[currentBusStop][2]["Stops Nearby"]:
-                if self.distance[closeBusStop] <self.distance[currentBusStop] and closeBusStop != nextBusStop:
+                if self.distance[closeBusStop] < self.distance[currentBusStop] and closeBusStop != nextBusStop:
                     nextBusStop = closeBusStop
                     walkingTransfer = True
             if busTaking is None:
-                busTaking = set(self.graph[currentBusStop][0]["Buses Supported"])
+                busTaking = set(
+                    self.graph[currentBusStop][0]["Buses Supported"])
             if busTaking.isdisjoint(set(self.graph[nextBusStop][0]["Buses Supported"])):
                 busesToReturn.append(list(busTaking))
                 if walkingTransfer:
-                    transfers.append({"Transfer Stop From": currentBusStop,"Transfer Stop To": nextBusStop, "Type": "Walking", "Time Taken for Walk": 5,
+                    transfers.append({"Transfer Stop From": currentBusStop, "Transfer Stop To": nextBusStop, "Type": "Walking", "Time Taken for Walk": 5,
                                       "Time Taken for Bus":  self.distance[startingBusStop] - self.distance[currentBusStop]})
                     distanceToReturn -= self.distance[currentBusStop]
                     distanceToReturn += self.distance[nextBusStop]
                 else:
-                    transfers.append({"Transfer Stop": currentBusStop, "Type": "On-Site", "Time Taken" : self.distance[startingBusStop] - self.distance[currentBusStop]})
+                    transfers.append({"Transfer Stop": currentBusStop, "Type": "On-Site",
+                                     "Time Taken": self.distance[startingBusStop] - self.distance[currentBusStop]})
                     startingBusStop = currentBusStop
                 busTaking = set(self.graph[nextBusStop][0]["Buses Supported"])
             else:
-                busTaking = set(self.graph[nextBusStop][0]["Buses Supported"]) & set(busTaking)
+                busTaking = set(
+                    self.graph[nextBusStop][0]["Buses Supported"]) & set(busTaking)
             pathing.append(nextBusStop)
             walkingTransfer = False
             if nextBusStop == start:
@@ -85,14 +88,15 @@ class Dijkstras:
 
     def _check_if_xfer(self, currentBusStop):
         if self.forBusTransferFunction is None:
-            self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+            self.forBusTransferFunction = set(
+                self.graph[currentBusStop][0]["Buses Supported"])
             return False
         else:
             if self.forBusTransferFunction.isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"])):
-                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+                self.forBusTransferFunction = set(
+                    self.graph[currentBusStop][0]["Buses Supported"])
                 return True
             else:
-                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+                self.forBusTransferFunction = set(
+                    self.graph[currentBusStop][0]["Buses Supported"])
                 return False
-
-

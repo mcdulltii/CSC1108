@@ -11,7 +11,8 @@ class AStar:
 
     def calculate_route(self, start, end):
         self.forBusTransferFunction = None
-        route = {"NodesVisited": [], "Transfers": [], "Distance": 0, "Path": []}
+        route = {"NodesVisited": [], "Transfers": [],
+                 "Distance": 0, "Path": []}
 
         if start not in self.graph or end not in self.graph:
             return route
@@ -104,14 +105,17 @@ class AStar:
 
     def check(self, currentBusStop):
         if self.forBusTransferFunction is None:
-            self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+            self.forBusTransferFunction = set(
+                self.graph[currentBusStop][0]["Buses Supported"])
             return False
         else:
             if self.forBusTransferFunction.isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"])):
-                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+                self.forBusTransferFunction = set(
+                    self.graph[currentBusStop][0]["Buses Supported"])
                 return True
             else:
-                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"]) & self.forBusTransferFunction
+                self.forBusTransferFunction = set(
+                    self.graph[currentBusStop][0]["Buses Supported"]) & self.forBusTransferFunction
                 return False
 
     def parsingToData(self, route, g):
@@ -139,7 +143,8 @@ class AStar:
                     })
                     timeToMinus = g[node["Transfer From"]]
                 else:
-                    busToAppend = busToAppend & set(node["Bus"]["Buses Supported"])
+                    busToAppend = busToAppend & set(
+                        node["Bus"]["Buses Supported"])
             prevNode = node
         toReturn["Buses To Return"].append(list(busToAppend))
         toReturn["Distance"] = route["Distance"]
