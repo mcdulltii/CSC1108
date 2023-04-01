@@ -73,7 +73,6 @@ class shortest_walk:
         locationEnd = (locationEnd[0], locationEnd[1])
 
         route_distance_matrix = self.gmaps.distance_matrix(locationStart, locationEnd, mode='walking')['rows'][0]['elements'][0]
-        # print(route_distance_matrix)
         return route_coordinates, route_distance_matrix["distance"]["value"]/1000, route_distance_matrix["duration"]["value"]/60
 
     def find_nearby(self, location):

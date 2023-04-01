@@ -13,6 +13,7 @@ class Dijkstras:
         self.graph = graph
 
     def calculate_route(self, end: str, start: str):
+        self.forBusTransferFunction = None
         if self.startingForToReturn != start:
             self.startingForToReturn = start
             q = []
@@ -38,7 +39,6 @@ class Dijkstras:
                                 self.distance[self.graph[v][i]["Name"]] = alt
                                 self.prev[self.graph[v][i]["Name"]] = v
 
-        # print(self.prev)
         toReturn = {"Transfers": []}
         pathing = [end]
         nextBusStop = end
@@ -81,7 +81,6 @@ class Dijkstras:
         toReturn = {"Pathing": pathing, "Buses To Return": busesToReturn, "Transfers": transfers,
                     "Distance": distanceToReturn}
         self.toReturn = toReturn
-
         return toReturn
 
     def _check_if_xfer(self, currentBusStop):

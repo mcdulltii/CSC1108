@@ -174,7 +174,7 @@ button[type="submit"]:hover {
 }
 
 #directions-panel {
-  height: 28em;
+  height: 45em;
   overflow: scroll;
   overflow-x: hidden;
 }
