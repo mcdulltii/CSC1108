@@ -381,6 +381,24 @@ function routeCallback(routeInfo) {
         detailsBtn.style.display = detailsBtn.style.display === "none" ? "block" : "none";
       });
 
+     routesBox.addEventListener("click", () => {
+      const detailsBtn = routesBox.querySelector(".details-btn");
+      const selectedRoute = directionsPanel.querySelector(".selected-route[data-route-index='" + index + "']");
+      if (selectedRoute && selectedRoute.style.display == "block") {
+        detailsBtn.style.display = "block";
+        selectedRoute.style.display = "none";
+      } else {
+        const selectedRoutes = directionsPanel.querySelectorAll(".selected-route");
+        selectedRoutes.forEach(selectedRoute => {
+          if (selectedRoute.style.display == "block") {
+            selectedRoute.style.display = "none";
+          }
+        });
+        detailsBtn.style.display = "none";
+        selectedRoute.style.display = "block";
+      }
+    });
+
       // Create time-wrapper and append to routes-box
       const timeWrapperOuter = document.createElement("div");
       timeWrapperOuter.classList.add("time-wrapper");
@@ -406,6 +424,7 @@ function routeCallback(routeInfo) {
       endTime.textContent = tConvert(shortestRoute["Time End"].substring(0, 2) + ":" + shortestRoute["Time End"].substring(2, 4));
       endTime.textContent = endTime.textContent.slice(0, endTime.textContent.length - 2) + " " + endTime.textContent.slice(endTime.textContent.length - 2);
       timeWrapper.appendChild(endTime);
+
 
       // Create duration span and append to time-wrapper
       const duration = document.createElement("span");
@@ -461,7 +480,7 @@ function routeCallback(routeInfo) {
       // Create details button and append to routes-box
       const detailsBtn = document.createElement("button");
       detailsBtn.classList.add("details-btn");
-      detailsBtn.textContent = shortestRoute["Algorithm"] + " Details";
+      detailsBtn.textContent = "Details";
       detailsBtn.value = routeInfoIndex;
 
       // Only show details button for first route
