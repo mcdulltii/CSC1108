@@ -231,8 +231,36 @@ function swapLocations() {
   startInput.value = endValue;
   endInput.value = startValue;
 
+  // Swap pin markers
+  if (mk1 && mk2) {
+    const mk1Position = mk1.position;
+    const mk2Position = mk2.position;
+    mk1.setPosition(mk2Position);
+    mk2.setPosition(mk1Position);
+  } else if (mk1 && !mk2) {
+    const mk1Position = mk1.position;
+    mk2 = new google.maps.Marker({
+      position: mk1Position,
+      map: map
+    });
+    mk2.setMap(map);
+    mk1.setMap(null);
+    mk1 = null;
+  } else if (mk2 && !mk1) {
+    const mk2Position = mk2.position;
+    mk1 = new google.maps.Marker({
+      position: mk2Position,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+      },
+      map: map
+    });
+    mk1.setMap(map);
+    mk2.setMap(null);
+    mk2 = null;
+  }
 }
-
 
 function setFocusedInput() {
   // Set latest input field as the active element
@@ -318,22 +346,24 @@ function showBusRoute(key, isShown) {
 function routeLoading() {
   const directionsPanel = document.getElementById("directions-panel");
   directionsPanel.innerHTML = "";
-  
+
   const loadingDiv = document.createElement("div");
   loadingDiv.id = "loading";
 
   const loadingAnim = document.createElement("img");
-  loadingAnim.src = "static/images/spin.gif";
+  loadingAnim.src = "static/images/map_loading.gif";
   loadingAnim.alt = "Loading...";
   loadingDiv.appendChild(loadingAnim);
-
+  loadingAnim.style.maxWidth = "100%"
+  document.title = "Loading..."
   directionsPanel.appendChild(loadingDiv);
 }
 
 function routeCallback(routeInfo) {
   const directionsPanel = document.getElementById("directions-panel");
+  directionsPanel.innerHTML = "";
+  document.title = "Johor Bahru Route Planner"
   if (routeInfo.hasOwnProperty("errorCode")) {
-    directionsPanel.innerHTML = "";
     clearRouteOverlay();
     alert("Failed to get route!");
   } else {
@@ -345,14 +375,29 @@ function routeCallback(routeInfo) {
       const routesBox = document.createElement("div");
       routesBox.classList.add("routes-box");
 
-      directionsPanel.innerHTML = "";
       directionsPanel.appendChild(routesBox);
 
       // Add event listener to routesBox to show/hide details button
       routesBox.addEventListener("click", () => {
-
         const detailsBtn = routesBox.querySelector(".details-btn");
         detailsBtn.style.display = detailsBtn.style.display === "none" ? "block" : "none";
+      });
+
+      routesBox.addEventListener("click", () => {
+        const detailsBtn = routesBox.querySelector(".details-btn");
+        const selectedRoute = directionsPanel.querySelector(".selected-route[data-route-index='" + index + "']");
+        if (selectedRoute && selectedRoute.style.display == "block") {
+          detailsBtn.style.display = "block";
+          selectedRoute.style.display = "none";
+        } else {
+          const selectedRoutes = directionsPanel.querySelectorAll(".selected-route");
+          selectedRoutes.forEach(selectedRoute => {
+            if (selectedRoute.style.display == "block") {
+              selectedRoute.style.display = "none";
+            }
+          });
+          selectedRoute.style.display = "block";
+        }
       });
 
       // Create time-wrapper and append to routes-box
@@ -380,6 +425,7 @@ function routeCallback(routeInfo) {
       endTime.textContent = tConvert(shortestRoute["Time End"].substring(0, 2) + ":" + shortestRoute["Time End"].substring(2, 4));
       endTime.textContent = endTime.textContent.slice(0, endTime.textContent.length - 2) + " " + endTime.textContent.slice(endTime.textContent.length - 2);
       timeWrapper.appendChild(endTime);
+
 
       // Create duration span and append to time-wrapper
       const duration = document.createElement("span");
@@ -435,7 +481,7 @@ function routeCallback(routeInfo) {
       // Create details button and append to routes-box
       const detailsBtn = document.createElement("button");
       detailsBtn.classList.add("details-btn");
-      detailsBtn.textContent = "Details";
+      detailsBtn.textContent = shortestRoute["Algorithm"] + " Details";
       detailsBtn.value = routeInfoIndex;
 
       // Only show details button for first route
@@ -457,21 +503,26 @@ function routeCallback(routeInfo) {
       detailsBtn.addEventListener("click", (event) => {
         // Hide all selected-route divs
         const selectedRoutes = document.querySelectorAll(".selected-route");
+        const currentSelectedRoute = selectedRoutes[event.target.value];
+
+        // Logic for click on already clicked details
         selectedRoutes.forEach(selectedRoute => {
-          if (selectedRoute.style.display == "block") {
+          if (selectedRoute.style.display == "block" && selectedRoute != currentSelectedRoute) {
             selectedRoute.style.display = "none";
-          } else {
-            selectedRoute.style.display = "block";
           }
         });
         // Show selected-route for this details button
-        showRouteDetails(selectedRoute, event.target.value);
+        if (currentSelectedRoute.style.display == "block") {
+          currentSelectedRoute.style.display = "none"
+        } else {
+          currentSelectedRoute.style.display = "block"
+        };
+
+        // Visualize route option
+        showRouteDetails(currentSelectedRoute, event.target.value);
 
         // Visualize nearest places
         showNearestPlaces(latestRouteInfo[event.target.value]);
-
-        // Hide the details button
-        detailsBtn.style.display = "none";
       });
 
       routeInfoIndex++;
@@ -479,7 +530,6 @@ function routeCallback(routeInfo) {
 
     // Visualize first route option
     showRouteDetails(directionsPanel.children[1], 0);
-    drawShortestRoute(latestRouteInfo[0]);
 
     // Visualize nearest places
     showNearestPlaces(latestRouteInfo[0]);
@@ -512,7 +562,7 @@ function showNearestPlaces(selectedRoute) {
       placeMarkers.push(mapMarker);
       google.maps.event.addListener(mapMarker, 'click', function () {
         this.description.setPosition(this.getPosition());
-        this.description.open(map); //map to display on
+        this.description.open(map); // map to display on
       });
     });
   });

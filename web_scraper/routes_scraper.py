@@ -12,7 +12,8 @@ class BusRouteScraper:
         # Bas Muafakat Johor website
         self.url = 'https://businterchange.net/johorbus/routes/routeinfo.php?service={}&selection=Direction+{}'
         # URL Query for bus numbers and routes
-        self.queries = ['P101_1', 'P102_1', 'P102_2', 'P106_1', 'P202_1', 'P211_1', 'P211_2', 'P411_1', 'P411_2', 'P403_1']
+        self.queries = ['P101_1', 'P102_1', 'P102_2', 'P106_1',
+                        'P202_1', 'P211_1', 'P211_2', 'P411_1', 'P411_2', 'P403_1']
         # JS routes variable
         self.route = 'busPolylineArray'
         # Amount of seconds to wait for website to load

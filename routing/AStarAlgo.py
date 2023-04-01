@@ -2,7 +2,6 @@ from queue import PriorityQueue
 from math import sin, cos, sqrt, atan2, radians
 
 
-
 class AStar:
     graph = None
     forBusTransferFunction = None
@@ -12,10 +11,10 @@ class AStar:
 
     def calculate_route(self, start, end):
         self.forBusTransferFunction = None
-        route = {"NodesVisited": [], "Transfers": [], "Distance": 0, "Path": []}
+        route = {"NodesVisited": [], "Transfers": [],
+                 "Distance": 0, "Path": []}
 
         if start not in self.graph or end not in self.graph:
-            # print("Start or end node not in graph")
             return route
 
         # Priority queue with f(n) = g(n) + h(n)
@@ -30,9 +29,7 @@ class AStar:
         q.put((g[start] + h[start], start))
 
         while not q.empty():
-            # print("q", q.queue)
             node = q.get()[1]
-            # print("Visiting node", node)
             route["NodesVisited"].append(node)
 
             if node == end:
@@ -42,12 +39,10 @@ class AStar:
 
             for i in range(3, len(self.graph[node])):
                 neighbor = self.graph[node][i]
-                # print("Exploring neighbor", neighbor)
                 neighborName = neighbor["Name"]
                 if neighborName not in g:
                     g[neighborName] = float("inf")
                 weight = neighbor["Time Taken"]
-                print(weight)
                 transfer = self.check(neighborName)
                 transferTime = 0
                 if transfer:
@@ -57,7 +52,6 @@ class AStar:
                     h[neighborName] = self.heuristic(neighborName, end)
                     prev[neighborName] = node
                     q.put((g[neighborName] + h[neighborName], neighborName))
-        # print("prev", prev)
         if route["Distance"] == 0:
             route["Distance"] = None
         path = [end]
@@ -93,7 +87,6 @@ class AStar:
         transfers = []
         current_node = end
         if current_node not in prev:
-            # print("No route found")
             return transfers
         while current_node != start:
             transfer_from = prev[current_node]
@@ -112,14 +105,17 @@ class AStar:
 
     def check(self, currentBusStop):
         if self.forBusTransferFunction is None:
-            self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+            self.forBusTransferFunction = set(
+                self.graph[currentBusStop][0]["Buses Supported"])
             return False
         else:
             if self.forBusTransferFunction.isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"])):
-                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"])
+                self.forBusTransferFunction = set(
+                    self.graph[currentBusStop][0]["Buses Supported"])
                 return True
             else:
-                self.forBusTransferFunction = set(self.graph[currentBusStop][0]["Buses Supported"]) & self.forBusTransferFunction
+                self.forBusTransferFunction = set(
+                    self.graph[currentBusStop][0]["Buses Supported"]) & self.forBusTransferFunction
                 return False
 
     def parsingToData(self, route, g):
@@ -147,23 +143,9 @@ class AStar:
                     })
                     timeToMinus = g[node["Transfer From"]]
                 else:
-                    busToAppend = busToAppend & set(node["Bus"]["Buses Supported"])
+                    busToAppend = busToAppend & set(
+                        node["Bus"]["Buses Supported"])
             prevNode = node
         toReturn["Buses To Return"].append(list(busToAppend))
         toReturn["Distance"] = route["Distance"]
-        print(toReturn)
         return toReturn
-        # for node in route["Path"]:
-
-
-# Testing
-
-#
-# if route["Distance"] is None:
-#     print("No route found!")
-# else:
-#     print(f"Distance: {route['Distance']:.2f} km")
-#     print("Nodes visited: ", route["NodesVisited"])
-#     print("Transfers: ")
-#     for t in route["Transfers"]:
-#         print(f"Take bus {t['Bus']} from {t['Transfer From']} to {t['Transfer To']}")
