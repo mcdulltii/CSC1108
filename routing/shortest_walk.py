@@ -78,7 +78,7 @@ class shortest_walk:
     def find_nearby(self, location):
         # set the search radius
         max_distance = 30
-        closest_stop = (0, 0)
+        closest_stop = None
         nearby = {}
         user_lat = location[0]
         user_lon = location[1]
@@ -92,10 +92,10 @@ class shortest_walk:
 
                 coord_lat = float(coords[0])
                 coord_lon = float(coords[1])
+                # distance = self.get_walking_route(location, coords)[1]
                 distance = self.haversine_distance(user_lat, user_lon, coord_lat, coord_lon)
                 if distance <= max_distance:
                     if key in nearby.keys():
-
                         # 1 bus service, 1 nearest bus stop from point
                         if nearby[key]["Distance From Point"] > distance:
                             bus_stop["Distance From Point"] = distance

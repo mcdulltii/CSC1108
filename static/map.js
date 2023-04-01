@@ -351,16 +351,18 @@ function routeLoading() {
   loadingDiv.id = "loading";
 
   const loadingAnim = document.createElement("img");
-  loadingAnim.src = "static/images/spin.gif";
+  loadingAnim.src = "static/images/map_loading.gif";
   loadingAnim.alt = "Loading...";
   loadingDiv.appendChild(loadingAnim);
-
+  loadingAnim.style.maxWidth="100%"
+  document.title = "Loading..."
   directionsPanel.appendChild(loadingDiv);
 }
 
 function routeCallback(routeInfo) {
   const directionsPanel = document.getElementById("directions-panel");
   directionsPanel.innerHTML = "";
+  document.title = "Johor Bahru Route Planner"
   if (routeInfo.hasOwnProperty("errorCode")) {
     clearRouteOverlay();
     alert("Failed to get route!");
