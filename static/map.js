@@ -383,23 +383,22 @@ function routeCallback(routeInfo) {
         detailsBtn.style.display = detailsBtn.style.display === "none" ? "block" : "none";
       });
 
-     routesBox.addEventListener("click", () => {
-      const detailsBtn = routesBox.querySelector(".details-btn");
-      const selectedRoute = directionsPanel.querySelector(".selected-route[data-route-index='" + index + "']");
-      if (selectedRoute && selectedRoute.style.display == "block") {
-        detailsBtn.style.display = "block";
-        selectedRoute.style.display = "none";
-      } else {
-        const selectedRoutes = directionsPanel.querySelectorAll(".selected-route");
-        selectedRoutes.forEach(selectedRoute => {
-          if (selectedRoute.style.display == "block") {
+      routesBox.addEventListener("click", () => {
+        const detailsBtn = routesBox.querySelector(".details-btn");
+        const selectedRoute = directionsPanel.querySelector(".selected-route[data-route-index='" + index + "']");
+        if (selectedRoute && selectedRoute.style.display == "block") {
+            detailsBtn.style.display = "block";
             selectedRoute.style.display = "none";
+        } else {
+            const selectedRoutes = directionsPanel.querySelectorAll(".selected-route");
+            selectedRoutes.forEach(selectedRoute => {
+              if (selectedRoute.style.display == "block") {
+                selectedRoute.style.display = "none";
+              }
+            });
+            selectedRoute.style.display = "block";
           }
         });
-        detailsBtn.style.display = "none";
-        selectedRoute.style.display = "block";
-      }
-    });
 
       // Create time-wrapper and append to routes-box
       const timeWrapperOuter = document.createElement("div");
