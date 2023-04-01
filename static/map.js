@@ -483,14 +483,20 @@ function routeCallback(routeInfo) {
       detailsBtn.addEventListener("click", (event) => {
         // Hide all selected-route divs
         const selectedRoutes = document.querySelectorAll(".selected-route");
+        const currentSelectedRoute = selectedRoutes[event.target.value];
+
+        // Logic for click on already clicked details
         selectedRoutes.forEach(selectedRoute => {
-          if (selectedRoute.style.display == "block") {
+          if (selectedRoute.style.display == "block" && selectedRoute != currentSelectedRoute) {
             selectedRoute.style.display = "none";
           }
         });
         // Show selected-route for this details button
-        const currentSelectedRoute = selectedRoutes[event.target.value];
-        currentSelectedRoute.style.display = "block";
+        if(currentSelectedRoute.style.display == "block"){
+            currentSelectedRoute.style.display = "none"
+        }else{
+            currentSelectedRoute.style.display = "block"
+        };
 
         // Visualize route option
         showRouteDetails(currentSelectedRoute, event.target.value);
