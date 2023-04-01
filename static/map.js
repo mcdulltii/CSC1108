@@ -17,16 +17,6 @@ var routeMarkers = [];
 var placeMarkers = [];
 // Latest route information
 var latestRouteInfo;
-// List of bus numbers and their colours
-var busColors = {
-  "P101": "#FC2947",
-  "P102": "#03C988",
-  "P106": "#820000",
-  "P202": "#F0997D",
-  "P211": "#B08BBB",
-  "P411": "#5E8C88",
-  "P403": "#674747"
-};
 // List of bus polylines
 var busPolylines = {
   'P101_1': null,
@@ -344,9 +334,9 @@ function routeCallback(routeInfo) {
   const directionsPanel = document.getElementById("directions-panel");
   if (routeInfo.hasOwnProperty("errorCode")) {
     directionsPanel.innerHTML = "";
+    clearRouteOverlay();
     alert("Failed to get route!");
   } else {
-    console.log(routeInfo);
     latestRouteInfo = routeInfo;
     routeInfoIndex = 0;
     // Retrieve routes taken
@@ -414,7 +404,7 @@ function routeCallback(routeInfo) {
         // Add the bus number
         const busNumber = document.createElement("span");
         busNumber.textContent = route["Type"].substring(0, 4);
-        const routeType = busColors[route["Type"].substring(0, 4)];
+        const routeType = busRouteColors[route["Type"].substring(0, 4) + "_1"];
         busNumber.style.backgroundColor = routeType;
 
         if (route["Type"] === "Walking") {
@@ -605,6 +595,30 @@ function showRouteDetails(selectedRoute, routeIndex) {
   iconDot.classList.add("location_indicator", "fa-regular", "fa-circle-dot")
   lastThird.append(iconDot);
   drawShortestRoute(latestRouteInfo[routeIndex]);
+}
+
+function clearRouteOverlay() {
+  // Clear previous route polylines
+  if (routePolylines) {
+    routePolylines.forEach(routePolyline => {
+      routePolyline.setMap(null);
+    });
+  }
+  routePolylines = [];
+  // Clear previous pin markers
+  if (routeMarkers) {
+    routeMarkers.forEach(routeMarker => {
+      routeMarker.setMap(null);
+    })
+  }
+  routeMarkers = [];
+  // Clear previous pin markers
+  if (placeMarkers) {
+    placeMarkers.forEach(placeMarker => {
+      placeMarker.setMap(null);
+    })
+  }
+  placeMarkers = [];
 }
 
 function drawShortestRoute(shortestRoute) {
