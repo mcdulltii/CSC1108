@@ -460,6 +460,7 @@ function routeCallback(routeInfo) {
         const routeType = busRouteColors[route["Type"].substring(0, 4) + "_1"];
         busNumber.style.backgroundColor = routeType;
 
+        // Add dynamic icons depending on travel mode in the directions summary
         if (route["Type"] === "Walking") {
           icon.classList.add("fa-solid");
           icon.classList.add("fa-person-walking");
@@ -584,8 +585,10 @@ function showRouteDetails(selectedRoute, routeIndex) {
   selectedRoute.appendChild(directionsList);
   var lastThird;
 
+  // Iterate over the elements in Routes
   latestRouteInfo[routeIndex]["Routes"].forEach(step => {
     const icon = document.createElement("i");
+    // Add dynamic icons depending on travel mode
     if (step["Type"] === "Walking") {
       icon.classList.add("fa-solid")
       icon.classList.add("fa-person-walking")
@@ -594,17 +597,19 @@ function showRouteDetails(selectedRoute, routeIndex) {
       icon.classList.add("fa-bus")
     }
 
+    // Create a mega div to display information in each selected route
     const megaDiv = document.createElement("div");
     megaDiv.classList.add("row", "test")
 
+    // First column to display icon and time of arrival
     const firstCol = document.createElement("div");
-
     var endArrivalTime = document.createElement("span")
     endArrivalTime.textContent = tConvert(step["End Arrival Time"].substring(0, 2) + ":" + step["End Arrival Time"].substring(2, 4));
     endArrivalTime.textContent = endArrivalTime.textContent.slice(0, endArrivalTime.textContent.length - 2) + " " + endArrivalTime.textContent.slice(endArrivalTime.textContent.length - 2);
     firstCol.classList.add("col-sm-1", "align-self-center", "justify-content-center", "d-flex")
     firstCol.appendChild(icon)
 
+    // Second column to display circle icon and ellipses
     const secondCol = document.createElement("div");
     secondCol.classList.add("col-sm-1")
     var iconCircle = document.createElement("i")
@@ -612,43 +617,59 @@ function showRouteDetails(selectedRoute, routeIndex) {
     secondCol.appendChild(iconCircle)
     var classToAdd = "ellipsis" + step["Type"].substring(0, 4)
 
+    // Iterate to display the multiple ellipses
     for (var i = 0; i < 6; i++) {
       var elip = document.createElement("i")
       elip.classList.add("ellipsis", "fa-solid", "fa-ellipsis-vertical", classToAdd)
+      // Set colour of ellipses depending on travel mode
       if (step["Type"] === "Walking") {
-        elip.style.color = "#73AB84"
+        elip.style.color = "#73AB84"    // green for walk
       } else {
-        elip.style.color = "#B58498"
+        elip.style.color = "#B58498"    // pink for bus
       }
       secondCol.appendChild(elip)
     }
+
+    // Third column to display Start location, Travel mode and sub-information
     const thirdCol = document.createElement("div");
     lastThird = secondCol
     thirdCol.classList.add("col-sm-8")
 
+    // Display start location
     var startLocation = document.createElement("p")
     startLocation.classList.add("display-time-and-location");
     startLocation.textContent = step["Start"];
 
+    // Display travel mode
     var travelMode = document.createElement("strong")
     travelMode.textContent = step["Type"]
 
+    // Display sub-information
     var travelDistance = document.createElement("p")
     if (step["Type"] === "Walking") {
+      // Display distance travelled for walk
       travelDistance.textContent = step["Distance Travelled"] + " km"
     } else {
+      // Display time taken and number of stops for bus
       travelDistance.textContent = Math.round(step["Time Taken"]) + " min (" + step["Number Of Stops"] + " stops)"
     }
 
+    // Add information to respective columns
     firstCol.appendChild(endArrivalTime)
     thirdCol.appendChild(startLocation)
     thirdCol.appendChild(travelMode)
     thirdCol.appendChild(travelDistance)
+
+    // Add each column to the mega div
     megaDiv.appendChild(firstCol)
     megaDiv.appendChild(secondCol)
     megaDiv.appendChild(thirdCol)
+
+    // Finally add mega div to directionsList
     directionsList.append(megaDiv)
   });
+
+  // Add the dot icon to signal end of journey
   var iconDot = document.createElement("i")
   iconDot.classList.add("location_indicator", "fa-regular", "fa-circle-dot")
   lastThird.append(iconDot);
