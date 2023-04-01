@@ -343,7 +343,7 @@ function showBusRoute(key, isShown) {
   }
 }
 
-function routeLoading() {
+function routeLoading(image, messageToDisplay) {
   const directionsPanel = document.getElementById("directions-panel");
   directionsPanel.innerHTML = "";
 
@@ -351,11 +351,13 @@ function routeLoading() {
   loadingDiv.id = "loading";
 
   const loadingAnim = document.createElement("img");
-  loadingAnim.src = "static/images/map_loading.gif";
-  loadingAnim.alt = "Loading...";
+  loadingAnim.src = image;
+  loadingAnim.alt = messageToDisplay;
   loadingDiv.appendChild(loadingAnim);
-  loadingAnim.style.maxWidth = "100%"
-  document.title = "Loading..."
+  loadingAnim.style.maxWidth = "100%";
+  if(messageToDisplay == "Loading..."){
+    document.title = "Loading...";
+  }
   directionsPanel.appendChild(loadingDiv);
 }
 
@@ -365,7 +367,7 @@ function routeCallback(routeInfo) {
   document.title = "Johor Bahru Route Planner"
   if (routeInfo.hasOwnProperty("errorCode")) {
     clearRouteOverlay();
-    alert("Failed to get route!");
+    routeLoading("static/images/error.png", "No Routes are to be found.")
   } else {
     latestRouteInfo = routeInfo;
     routeInfoIndex = 0;
