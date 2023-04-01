@@ -346,7 +346,7 @@ function showBusRoute(key, isShown) {
 function routeLoading(image, messageToDisplay) {
   const directionsPanel = document.getElementById("directions-panel");
   directionsPanel.innerHTML = "";
-  
+
   const loadingDiv = document.createElement("div");
   loadingDiv.id = "loading";
 
@@ -354,9 +354,9 @@ function routeLoading(image, messageToDisplay) {
   loadingAnim.src = image;
   loadingAnim.alt = messageToDisplay;
   loadingDiv.appendChild(loadingAnim);
-  loadingAnim.style.maxWidth="100%"
+  loadingAnim.style.maxWidth = "100%";
   if(messageToDisplay == "Loading..."){
-    document.title = "Loading..."
+    document.title = "Loading...";
   }
   directionsPanel.appendChild(loadingDiv);
 }
@@ -389,18 +389,18 @@ function routeCallback(routeInfo) {
         const detailsBtn = routesBox.querySelector(".details-btn");
         const selectedRoute = directionsPanel.querySelector(".selected-route[data-route-index='" + index + "']");
         if (selectedRoute && selectedRoute.style.display == "block") {
-            detailsBtn.style.display = "block";
-            selectedRoute.style.display = "none";
+          detailsBtn.style.display = "block";
+          selectedRoute.style.display = "none";
         } else {
-            const selectedRoutes = directionsPanel.querySelectorAll(".selected-route");
-            selectedRoutes.forEach(selectedRoute => {
-              if (selectedRoute.style.display == "block") {
-                selectedRoute.style.display = "none";
-              }
-            });
-            selectedRoute.style.display = "block";
-          }
-        });
+          const selectedRoutes = directionsPanel.querySelectorAll(".selected-route");
+          selectedRoutes.forEach(selectedRoute => {
+            if (selectedRoute.style.display == "block") {
+              selectedRoute.style.display = "none";
+            }
+          });
+          selectedRoute.style.display = "block";
+        }
+      });
 
       // Create time-wrapper and append to routes-box
       const timeWrapperOuter = document.createElement("div");
@@ -514,10 +514,10 @@ function routeCallback(routeInfo) {
           }
         });
         // Show selected-route for this details button
-        if(currentSelectedRoute.style.display == "block"){
-            currentSelectedRoute.style.display = "none"
-        }else{
-            currentSelectedRoute.style.display = "block"
+        if (currentSelectedRoute.style.display == "block") {
+          currentSelectedRoute.style.display = "none"
+        } else {
+          currentSelectedRoute.style.display = "block"
         };
 
         // Visualize route option

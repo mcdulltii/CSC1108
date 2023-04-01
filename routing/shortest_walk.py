@@ -1,5 +1,7 @@
 import googlemaps
 import polyline
+import os
+from dotenv import load_dotenv
 
 from math import radians, cos, sin, asin, sqrt
 from routes_reader.routes_reader import RoutesReader
@@ -12,8 +14,9 @@ class shortest_walk:
         # format: { {'P101': {'Name': 'Larkin Terminal ⊃ Johor Bahru City (loop service)', 'Coordinates': '41.40338, 2.17403'} }
         self.list_of_bus_stops = bus_stops
 
+    load_dotenv()
     # googlemaps api key
-    gmaps = googlemaps.Client(key='AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns')
+    gmaps = googlemaps.Client(key=os.getenv('API_KEY'))
 
     '''
     # converting user address to location as coordinates
@@ -22,11 +25,13 @@ class shortest_walk:
     user_lat = user_geocode_result[0]['geometry']['location']['lat']
     user_lon = user_geocode_result[0]['geometry']['location']['lng']
     '''
+
     def find_nearest_point_of_interest(self, location, keyword):
         toReturn = []
         locationCheck = self.string_to_coordinate(location)
         formattedLatLong = {"lat": locationCheck[0], "lng": locationCheck[1]}
-        results = self.gmaps.places(keyword, radius="3", location=formattedLatLong)["results"]
+        results = self.gmaps.places(
+            keyword, radius="3", location=formattedLatLong)["results"]
         for result in results:
             toReturn.append({
                 "Name": result["name"],
@@ -53,7 +58,8 @@ class shortest_walk:
         delta_lon = lon2 - lon1
 
         # haversine formula
-        a = sin(delta_lat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(delta_lon / 2) ** 2
+        a = sin(delta_lat / 2) ** 2 + cos(lat1) * \
+            cos(lat2) * sin(delta_lon / 2) ** 2
         c = 2 * asin(sqrt(a))
         dist = c * R
 
@@ -61,18 +67,22 @@ class shortest_walk:
 
     def string_to_coordinate(self, location_in_string):
         google_return = self.gmaps.geocode(location_in_string)
-        to_return = [google_return[0]['geometry']['location'] ['lat'], google_return[0]['geometry']['location'] ['lng']]
+        to_return = [google_return[0]['geometry']['location']
+                     ['lat'], google_return[0]['geometry']['location']['lng']]
         return to_return
 
     # locate nearest bus stop
     def get_walking_route(self, locationStart, locationEnd):
 
-        directions_result = self.gmaps.directions(locationStart, locationEnd, mode="walking")
-        route_coordinates = polyline.decode(directions_result[0]['overview_polyline']['points'])
+        directions_result = self.gmaps.directions(
+            locationStart, locationEnd, mode="walking")
+        route_coordinates = polyline.decode(
+            directions_result[0]['overview_polyline']['points'])
         locationStart = (locationStart[0], locationStart[1])
         locationEnd = (locationEnd[0], locationEnd[1])
 
-        route_distance_matrix = self.gmaps.distance_matrix(locationStart, locationEnd, mode='walking')['rows'][0]['elements'][0]
+        route_distance_matrix = self.gmaps.distance_matrix(
+            locationStart, locationEnd, mode='walking')['rows'][0]['elements'][0]
         return route_coordinates, route_distance_matrix["distance"]["value"]/1000, route_distance_matrix["duration"]["value"]/60
 
     def find_nearby(self, location):
@@ -93,7 +103,8 @@ class shortest_walk:
                 coord_lat = float(coords[0])
                 coord_lon = float(coords[1])
                 # distance = self.get_walking_route(location, coords)[1]
-                distance = self.haversine_distance(user_lat, user_lon, coord_lat, coord_lon)
+                distance = self.haversine_distance(
+                    user_lat, user_lon, coord_lat, coord_lon)
                 if distance <= max_distance:
                     if key in nearby.keys():
                         # 1 bus service, 1 nearest bus stop from point
@@ -114,9 +125,10 @@ class shortest_walk:
             if distance_away_from > nearby[keys]["Distance From Point"]:
                 distance_away_from = nearby[keys]["Distance From Point"]
                 closest_stop = nearby[keys]
-                
+
         if closest_stop is not None:
-            routeReturn = self.get_walking_route(location, [float(x) for x in closest_stop["GPS Location"].split(", ")])
+            routeReturn = self.get_walking_route(
+                location, [float(x) for x in closest_stop["GPS Location"].split(", ")])
             route_coordinates = routeReturn[0]
             distance = routeReturn[1]
             timetaken = routeReturn[2]
