@@ -233,11 +233,13 @@ function swapLocations() {
 
   // Swap pin markers
   if (mk1 && mk2) {
+    // Swap markers
     const mk1Position = mk1.position;
     const mk2Position = mk2.position;
     mk1.setPosition(mk2Position);
     mk2.setPosition(mk1Position);
   } else if (mk1 && !mk2) {
+    // Swap first marker with second marker
     const mk1Position = mk1.position;
     mk2 = new google.maps.Marker({
       position: mk1Position,
@@ -247,6 +249,7 @@ function swapLocations() {
     mk1.setMap(null);
     mk1 = null;
   } else if (mk2 && !mk1) {
+    // Swap second marker with first marker
     const mk2Position = mk2.position;
     mk1 = new google.maps.Marker({
       position: mk2Position,
@@ -347,6 +350,7 @@ function routeLoading(image, messageToDisplay) {
   const directionsPanel = document.getElementById("directions-panel");
   directionsPanel.innerHTML = "";
 
+  // Add animation/image to panel
   const loadingDiv = document.createElement("div");
   loadingDiv.id = "loading";
 
@@ -355,7 +359,7 @@ function routeLoading(image, messageToDisplay) {
   loadingAnim.alt = messageToDisplay;
   loadingDiv.appendChild(loadingAnim);
   loadingAnim.style.maxWidth = "100%";
-  if(messageToDisplay == "Loading..."){
+  if (messageToDisplay == "Loading...") {
     document.title = "Loading...";
   }
   directionsPanel.appendChild(loadingDiv);
@@ -364,10 +368,11 @@ function routeLoading(image, messageToDisplay) {
 function routeCallback(routeInfo) {
   const directionsPanel = document.getElementById("directions-panel");
   directionsPanel.innerHTML = "";
-  document.title = "Johor Bahru Route Planner"
+  document.title = "Johor Bahru Route Planner";
   if (routeInfo.hasOwnProperty("errorCode")) {
+    // If route algorithm fails (Pin coordinates are too far)
     clearRouteOverlay();
-    routeLoading("static/images/error.png", "No Routes are to be found.")
+    routeLoading("static/images/error.png", "No Routes are to be found.");
   } else {
     latestRouteInfo = routeInfo;
     routeInfoIndex = 0;
@@ -551,6 +556,7 @@ function showNearestPlaces(selectedRoute) {
     })
   }
   placeMarkers = [];
+  // Add pin to nearby places
   nearestPlaces.forEach(place => {
     place.forEach(placeCoord => {
       const mapMarker = new google.maps.Marker({
@@ -558,6 +564,7 @@ function showNearestPlaces(selectedRoute) {
         icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
         map: map,
       });
+      // Add places description
       mapMarker.description = new google.maps.InfoWindow({
         content: placeCoord["Type"] + ": " + placeCoord["Name"] + ", " + placeCoord["Rating"] + " Rating",
       });
@@ -641,11 +648,12 @@ function showRouteDetails(selectedRoute, routeIndex) {
     megaDiv.appendChild(secondCol)
     megaDiv.appendChild(thirdCol)
     directionsList.append(megaDiv)
-
   });
   var iconDot = document.createElement("i")
   iconDot.classList.add("location_indicator", "fa-regular", "fa-circle-dot")
   lastThird.append(iconDot);
+
+  // Draw current route
   drawShortestRoute(latestRouteInfo[routeIndex]);
 }
 
@@ -710,7 +718,7 @@ function drawShortestRoute(shortestRoute) {
     // Apply polyline overlay on google map
     routePolyline.setMap(map);
     routePolylines.push(routePolyline);
-    // Add pin to transfers
+    // Add pin to bus stops
     if (route.hasOwnProperty("Stops In Between")) {
       route["Stops In Between"].forEach(routeStop => {
         const routeStopCoord = routeStop["Coordinates"].split(", ");
@@ -719,13 +727,14 @@ function drawShortestRoute(shortestRoute) {
           icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
           map: map,
         });
+        // Add bus stop description
         mapMarker.description = new google.maps.InfoWindow({
           content: routeType.split("_")[0] + ": " + routeStop["Name"],
         });
         routeMarkers.push(mapMarker);
         google.maps.event.addListener(mapMarker, 'click', function () {
           this.description.setPosition(this.getPosition());
-          this.description.open(map); //map to display on
+          this.description.open(map); // map to display on
         });
       });
     }
@@ -745,6 +754,7 @@ function tConvert(time) {
 }
 
 function toHoursAndMinutes(totalMinutes) {
+  // Convert minutes to hours and minutes
   const hours = Math.floor(totalMinutes / 60);
   const minutes = Math.round(totalMinutes % 60);
   return { hours, minutes };

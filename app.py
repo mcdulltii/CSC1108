@@ -34,6 +34,7 @@ def main():
 
 @app.route('/route/<bus_number>/<int:direction>')
 def get_routes(bus_number, direction):
+    # Get bus routes
     key = f'{bus_number}_{direction}'
     if routes is None or key not in routes.keys():
         return invalid_page('Invalid bus route')
@@ -42,6 +43,7 @@ def get_routes(bus_number, direction):
 
 @app.route('/form-ori-dest', methods=["POST"])
 def get_ori_dest():
+    # Calculate walking and bus route from origin to destination
     routing = RoutingAlgo()
     origin = request.form['origin']
     destination = request.form['destination']

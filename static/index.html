@@ -97,13 +97,15 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script type="text/javascript"
     src="https://maps.googleapis.com/maps/api/js?key={{api_key}}&callback=initialize"></script>
-  <script>// Add an event listener to the switch button to call the swapLocations function when clicked
+  <script>
+    // Add an event listener to the switch button to call the swapLocations function when clicked
     const switchBtn = document.getElementById('switch-btn');
     switchBtn.addEventListener('click', () => {
       swapLocations();
       document.getElementById('origin-dest-form').submit();
     });
 
+    // Add form submit event listener to return to routeCallback function after POST request
     document.forms['origin-dest-form'].addEventListener('submit', (event) => {
       event.preventDefault();
       fetch(event.target.action, {
