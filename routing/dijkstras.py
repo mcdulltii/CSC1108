@@ -39,7 +39,6 @@ class Dijkstras:
                                 self.distance[self.graph[v][i]["Name"]] = alt
                                 self.prev[self.graph[v][i]["Name"]] = v
 
-        # print(self.prev)
         toReturn = {"Transfers": []}
         pathing = [end]
         nextBusStop = end

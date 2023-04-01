@@ -73,7 +73,6 @@ class RoutingAlgo:
             toReturn = {
                 "Routes": []
             }
-            print(routeObject)
             timeStart = "095511"
             timeToAdd = 0
             timeTravelling = routeObject["Distance"]
@@ -151,7 +150,6 @@ class RoutingAlgo:
                 while True:
                     point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
                     if point == busPointToCheck:
-                        # print("MATCH")
                         startRecording = True
                     if startRecording:
                         toReturn["Routes"][indexOfRouteObj]["Route"].append({'lat': point[1], 'lng': point[0]})
@@ -448,9 +446,6 @@ class RoutingAlgo:
         indexOfBusStop = next(
             (index for (index, d) in enumerate(self.parsedData[busServiceForRoute]) if
              d["Name"] == busStopName), None)
-        print(busStopName)
-        print(busServiceForRoute)
-        print(indexOfBusStop)
         busStopToReturn = self.parsedData[busServiceForRoute][indexOfBusStop]
         return busStopToReturn
 
