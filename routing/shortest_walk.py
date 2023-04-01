@@ -1,5 +1,7 @@
 import googlemaps
 import polyline
+import os
+from dotenv import load_dotenv
 
 from math import radians, cos, sin, asin, sqrt
 from routes_reader.routes_reader import RoutesReader
@@ -12,8 +14,9 @@ class shortest_walk:
         # format: { {'P101': {'Name': 'Larkin Terminal ⊃ Johor Bahru City (loop service)', 'Coordinates': '41.40338, 2.17403'} }
         self.list_of_bus_stops = bus_stops
 
+    load_dotenv()
     # googlemaps api key
-    gmaps = googlemaps.Client(key='AIzaSyAB_QsjZviwHVJHyBCeTPiK8M1NOvSLcns')
+    gmaps = googlemaps.Client(key=os.getenv('API_KEY'))
 
     '''
     # converting user address to location as coordinates
