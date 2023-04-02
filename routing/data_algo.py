@@ -71,6 +71,7 @@ class RoutingAlgo:
         routeAlgorithms = ["Dijkstra", "AStar"]
         routeObjects = [self.DijkstrasrouteCalculator.calculate_route(
             startingBusStop, endingBusStop), self.AStarrouteCalculator.calculate_route(startingBusStop, endingBusStop)]
+        # Overall to return route
         returnRoutes = []
 
         for routeObjectIndex, routeObject in enumerate(routeObjects):
@@ -78,6 +79,7 @@ class RoutingAlgo:
                 "Routes": [],
                 "Algorithm": routeAlgorithms[routeObjectIndex],
             }
+            # Fixed Time
             timeStart = "095511"
             timeToAdd = 0
             timeTravelling = routeObject["Distance"]
@@ -104,6 +106,8 @@ class RoutingAlgo:
             busStopStart = routeObject["Pathing"][0]
             toReturn["Time Start"] = timeStart
             transfers = deque()
+
+            # Queue Data structure to help push away transfers that are recorded already
             for transfer in routeObject["Transfers"]:
                 transfers.append(transfer)
             for busesToTake in routeObject["Buses To Return"]:
@@ -142,10 +146,12 @@ class RoutingAlgo:
                 busPointEnd = busStopEndInfo["Closest Point"]
                 indexOf = list(self.parsedData.keys()).index(busesToTake[0])
                 correspondingMapBoxKey = list(self.mapBoxScrap.keys())[indexOf]
+                # Requiring an iterator to jump index in case of looping services
                 pointIterator = 0
-
                 indexOfRouteObj = next(
                     (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
+
+                # Populating information in return json of selected route with index
                 toReturn["Routes"][indexOfRouteObj]["Start"] = busStopStart["Name"]
                 toReturn["Routes"][indexOfRouteObj]["End"] = busStopEnd
                 busInBetweenInfo = self._get_number_of_stops(routeObject["Pathing"],
@@ -162,6 +168,7 @@ class RoutingAlgo:
                 while True:
                     point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
                     if point == busPointToCheck:
+                        # Start Recording the route in map box coords after match
                         startRecording = True
                     if startRecording:
                         toReturn["Routes"][indexOfRouteObj]["Route"].append(
@@ -275,7 +282,7 @@ class RoutingAlgo:
             self.forwardGraphedData[stopName].append({"Buses Supported": []})
             self.forwardGraphedData[stopName].append({"Close Point": []})
             self.forwardGraphedData[stopName].append({"Stops Nearby": []})
-
+            # to add keys and values to help with the data processing
             for i in self.parsedData.keys():
                 for d in range(0, len(self.parsedData[i])):
                     if stopName == self.parsedData[i][d]["Name"]:
@@ -356,6 +363,9 @@ class RoutingAlgo:
                 set(self.forwardGraphedData[stopName][2]["Stops Nearby"]))
 
     def _get_number_of_stops(self, path, start, end, bus):
+        # Count number of stops by iterating through when at the start, then stopping when
+        # Reaching the end
+        # Giving back coordinates as well for pinning purposes
         startRecording = False
         count = 0
         listOfBusStops = []
@@ -464,6 +474,7 @@ class RoutingAlgo:
         busStopInfo = self._find_bus_stop_information(bus, stopName)
         timeToCompare = datetime.strptime(timeToCompare, "%H%M%S")
         timeToReturn = None
+        # Time to compare, init as huge value
         differenceInTime = 500000000
         for index, time in enumerate(busStopInfo["Time Of Arrival"]):
             timeConverted = datetime.strptime(time, "%H%M%S")
@@ -474,13 +485,14 @@ class RoutingAlgo:
                 timeToReturn = time
         return timeToReturn
 
-    # temp Solution
     def _convert_to_key(self, freqKey, key):
+        # Converting P101_loop to P101 for frequency key
         for i in freqKey:
             if i[0:4] == key[0:4]:
                 return i
 
     def _find_bus_stop_information(self, busServiceForRoute, busStopName):
+        # Iterates through my parsedData to find index before returning the dictionary item
         indexOfBusStop = next(
             (index for (index, d) in enumerate(self.parsedData[busServiceForRoute]) if
              d["Name"] == busStopName), None)
@@ -522,6 +534,7 @@ class RoutingAlgo:
 
     @staticmethod
     def _calculating_time(startingTime, operandInMinutes, addorminus):
+        # Just consolidating all the time manipulation in one code
         if (addorminus == 0):
             toReturnTime = (datetime.strptime(startingTime, "%H%M%S") - timedelta(
                 minutes=operandInMinutes)).strftime("%H%M%S")

@@ -14,6 +14,7 @@ class AStar:
         route = {"NodesVisited": [], "Transfers": [],
                  "Distance": 0, "Path": []}
 
+        # Check if start node (stop name) in self.graph
         if start not in self.graph or end not in self.graph:
             return route
 
@@ -45,6 +46,7 @@ class AStar:
                 weight = neighbor["Time Taken"]
                 transfer = self.check(neighborName)
                 transferTime = 0
+                # If there is transfer add transfer time
                 if transfer:
                     transferTime = 15
                 if g[node] + weight + transferTime < g[neighborName]:
@@ -53,6 +55,7 @@ class AStar:
                     prev[neighborName] = node
                     q.put((g[neighborName] + h[neighborName], neighborName))
         if route["Distance"] == 0:
+            # If there is no route, return None
             route["Distance"] = None
         path = [end]
         current_node = end
@@ -103,12 +106,14 @@ class AStar:
         transfers.reverse()
         return transfers
 
+    # Check if it is a transfer
     def check(self, currentBusStop):
         if self.forBusTransferFunction is None:
             self.forBusTransferFunction = set(
                 self.graph[currentBusStop][0]["Buses Supported"])
             return False
         else:
+            # if the set is disjoint / diff it is a transfer
             if self.forBusTransferFunction.isdisjoint(set(self.graph[currentBusStop][0]["Buses Supported"])):
                 self.forBusTransferFunction = set(
                     self.graph[currentBusStop][0]["Buses Supported"])

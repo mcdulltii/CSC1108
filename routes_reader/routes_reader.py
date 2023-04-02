@@ -7,6 +7,7 @@ class RoutesReader:
     def __init__(self):
         self.dirpath = os.path.dirname(os.path.realpath(__file__))
 
+    # Read bus data from excel
     def read_excel(self, relpath: str) -> Dict[Any, Dict]:
         assert len(relpath)
         filepath = os.path.join(self.dirpath, relpath)
