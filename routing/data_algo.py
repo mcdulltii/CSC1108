@@ -4,13 +4,11 @@ from routing.dijkstras import Dijkstras
 from routes_reader.routes_reader import RoutesReader
 
 import os
-import sys
-import time
+
 import pickle
 from typing import List, Dict, Any
 from collections import deque
 
-import googlemaps
 import pprint as pp
 from math import sin, cos, sqrt, atan2, radians
 
@@ -146,7 +144,8 @@ class RoutingAlgo:
                 busPointEnd = busStopEndInfo["Closest Point"]
                 indexOf = list(self.parsedData.keys()).index(busesToTake[0])
                 correspondingMapBoxKey = list(self.mapBoxScrap.keys())[indexOf]
-                # Requiring an iterator to jump index in case of looping services
+
+                # Needed an iterative to reset for looping bus services
                 pointIterator = 0
                 indexOfRouteObj = next(
                     (index for (index, d) in enumerate(toReturn["Routes"]) if d["Type"] == busesToTake[0]), None)
@@ -164,6 +163,7 @@ class RoutingAlgo:
                     toReturn["Routes"][indexOfRouteObj]["Bus Arrival Time"],
                     toReturn["Routes"][indexOfRouteObj]["End Arrival Time"], 3)
 
+                # Start counting when it's true
                 startRecording = False
                 while True:
                     point = self.mapBoxScrap[correspondingMapBoxKey][pointIterator]
@@ -369,6 +369,8 @@ class RoutingAlgo:
         startRecording = False
         count = 0
         listOfBusStops = []
+
+        # Counting number of bus stops and also getting GPS Coords
         for i in path:
             if i == start:
                 startRecording = True
@@ -529,12 +531,13 @@ class RoutingAlgo:
         return distance
 
     @staticmethod
+    # Static speed to calculate time taken
     def _calculate_time_taken(distance):
         return distance / 50 * 60
 
     @staticmethod
+    # Consolidating all time manipulation in one code and adding a "code" to do what I need to do
     def _calculating_time(startingTime, operandInMinutes, addorminus):
-        # Just consolidating all the time manipulation in one code
         if (addorminus == 0):
             toReturnTime = (datetime.strptime(startingTime, "%H%M%S") - timedelta(
                 minutes=operandInMinutes)).strftime("%H%M%S")
