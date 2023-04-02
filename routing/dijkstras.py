@@ -39,13 +39,10 @@ class Dijkstras:
                                 self.distance[self.graph[v][i]["Name"]] = alt
                                 self.prev[self.graph[v][i]["Name"]] = v
 
-        toReturn = {"Transfers": []}
         pathing = [end]
         nextBusStop = end
-        walkingXfer = False
         # take note of crossing over
         startingBusStop = end
-
         busTaking = None
         busesToReturn = []
         transfers = []
@@ -83,6 +80,8 @@ class Dijkstras:
 
         toReturn = {"Pathing": pathing, "Buses To Return": busesToReturn, "Transfers": transfers,
                     "Distance": distanceToReturn}
+
+        # Check for if same ending location no need run through algo
         self.toReturn = toReturn
         return toReturn
 
